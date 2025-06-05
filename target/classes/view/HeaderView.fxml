@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox alignment="CENTER_LEFT" spacing="50" style="-fx-background-color: #28304E; -fx-padding: 20 30 20 30;" 
+      xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="com.talenttracker.controller.HeaderController">
+    <!-- Left side: Logo and Navigation -->
+    <HBox spacing="50" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+        <ImageView fx:id="logoImage" fitWidth="60" fitHeight="60" preserveRatio="true"/>
+        
+        <Label text="Dashboard" styleClass="nav-item" onMouseClicked="#navigateToDashboard"/>
+        <Label text="Project" styleClass="nav-item" onMouseClicked="#navigateToProject"/>
+        <Label text="Attendance" styleClass="nav-item" onMouseClicked="#navigateToAttendance"/>
+        <Label text="Schedule" styleClass="nav-item" onMouseClicked="#navigateToSchedule"/>
+    </HBox>
+    
+    <!-- Right side: Profile -->
+    <HBox spacing="20" alignment="CENTER_RIGHT">
+        <VBox alignment="CENTER_RIGHT">
+            <Label fx:id="nameLabel" styleClass="profile-name"/>
+            <Label fx:id="roleLabel" styleClass="profile-role"/>
+        </VBox>
+        <ImageView fx:id="profileImage" fitWidth="40" fitHeight="40" preserveRatio="true"/>
+    </HBox>
+</HBox> 

@@ -1,0 +1,20 @@
+.nav-item {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-cursor: hand;
+}
+
+.nav-item:hover {
+    -fx-text-fill: #FFD6E8;
+}
+
+.profile-name {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.profile-role {
+    -fx-text-fill: #B0B0B0;
+    -fx-font-size: 12px;
+} 
