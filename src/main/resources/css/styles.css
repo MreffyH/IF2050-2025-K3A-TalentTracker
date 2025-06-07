@@ -1,0 +1,27 @@
+@font-face {
+    font-family: 'Gabarito';
+    src: url('Gabarito-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Gabarito Medium';
+    src: url('Gabarito-Medium.ttf');
+}
+
+.root {
+    -fx-font-family: 'Gabarito';
+}
+
+.label-bold {
+    -fx-font-family: 'Gabarito Medium';
+}
+
+.hyperlink {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 16px;
+}
+
+.hyperlink:hover {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 16px;
+}
