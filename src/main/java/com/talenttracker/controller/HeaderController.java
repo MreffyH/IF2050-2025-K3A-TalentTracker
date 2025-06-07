@@ -1,11 +1,15 @@
 package com.talenttracker.controller;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.shape.Circle;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 public class HeaderController {
@@ -53,7 +57,13 @@ public class HeaderController {
     
     @FXML
     public void navigateToDashboard() {
-        // Navigation will be implemented later
+        try {
+            BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DashboardView.fxml"));
+            mainContainer.setCenter(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML

@@ -33,8 +33,7 @@
             <HBox spacing="20">
                 <!-- Calendar Section -->
                 <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;" prefWidth="350">
-                    <Label text="Calendar" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #28304E;"/>
-                    <GridPane fx:id="calendarGrid" style="-fx-padding: 10;"/>
+                    <fx:include source="CalendarView.fxml"/>
                 </VBox>
                 
                 <!-- Stats Section -->

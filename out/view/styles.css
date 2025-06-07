@@ -190,4 +190,76 @@
 
 .stat-change {
     -fx-font-size: 12px;
+}
+
+/* Calendar Styles */
+.calendar-container {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);
+}
+
+.month-year-container {
+    -fx-spacing: 5;
+    -fx-padding: 5 15;
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 15;
+    -fx-min-width: 120;
+}
+
+.month-label {
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-text-fill: #28304E;
+}
+
+.year-label {
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-text-fill: #28304E;
+    -fx-padding: 0 0 0 5;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-size: 18;
+    -fx-text-fill: #28304E;
+    -fx-cursor: hand;
+    -fx-padding: 5 10;
+}
+
+.nav-button:hover {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 15;
+}
+
+.calendar-header {
+    -fx-font-size: 14;
+    -fx-font-weight: normal;
+    -fx-text-fill: #666666;
+}
+
+.calendar-date {
+    -fx-font-size: 14;
+    -fx-padding: 8;
+    -fx-background-radius: 10;
+    -fx-min-width: 35;
+    -fx-min-height: 35;
+    -fx-alignment: center;
+    -fx-text-fill: #28304E;
+}
+
+.calendar-date:hover {
+    -fx-background-color: #f0f0f0;
+    -fx-cursor: hand;
+}
+
+.today {
+    -fx-background-color: #28304E;
+    -fx-text-fill: white;
+}
+
+.inactive-date {
+    -fx-text-fill: #cccccc;
 } 

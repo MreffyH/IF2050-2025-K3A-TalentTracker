@@ -1,30 +1,14 @@
 #!/bin/sh
 
-# JavaFX SDK path
-JAVAFX_PATH=~/javafx-sdk/javafx-sdk-22.0.2/lib
+# This script now uses Maven to build and run the project,
+# which correctly handles all dependencies from pom.xml.
 
-# Clean output directory
-rm -rf out
-mkdir -p out
-
-echo "Copying resources..."
-# Copy all resources maintaining directory structure
-cp -r src/main/resources/* out/
-
-echo "Compiling..."
-# Compile
-javac --module-path $JAVAFX_PATH \
-      --add-modules javafx.controls,javafx.fxml \
-      -d out \
-      $(find src/main/java -name "*.java")
+echo "Building the project with Maven..."
+mvn clean install
 
 if [ $? -eq 0 ]; then
-    echo "Compilation successful! Running application..."
-    # Run
-    java --module-path $JAVAFX_PATH \
-         --add-modules javafx.controls,javafx.fxml \
-         -cp out \
-         com.talenttracker.Main
+    echo "Build successful! Running application..."
+    mvn javafx:run
 else
-    echo "Compilation failed!"
+    echo "Maven build failed!"
 fi 

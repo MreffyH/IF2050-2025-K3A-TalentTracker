@@ -10,25 +10,15 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.io.IOException;
 
 public class DashboardController {
-    // Sidebar Elements
-    @FXML private Button prevMonthButton;
-    @FXML private Label monthYearLabel;
-    @FXML private Button nextMonthButton;
-    @FXML private DatePicker datePicker;
-
     @FXML private ImageView crownIconView;
     @FXML private ImageView artistImageView;
     @FXML private ImageView starIconView;
@@ -55,35 +45,13 @@ public class DashboardController {
 
     @FXML private PieChart monthlyTotalChart;
 
-    private YearMonth currentYearMonth;
-
     @FXML
     public void initialize() {
-        setupCalendar();
         setupCharts();
         setupSearch();
         initializeTopArtist();
         initializeStatIcons();
         setupMonthlyTotalChart();
-    }
-
-    private void setupCalendar() {
-        currentYearMonth = YearMonth.now();
-        datePicker.setValue(LocalDate.now());
-        updateMonthLabel();
-
-        prevMonthButton.setOnAction(event -> changeMonth(-1));
-        nextMonthButton.setOnAction(event -> changeMonth(1));
-    }
-
-    private void updateMonthLabel() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
-        monthYearLabel.setText(currentYearMonth.format(formatter));
-    }
-
-    private void changeMonth(int months) {
-        currentYearMonth = currentYearMonth.plusMonths(months);
-        updateMonthLabel();
     }
 
     private void setupCharts() {
@@ -178,15 +146,25 @@ public class DashboardController {
         
         if (searchTerm.equalsIgnoreCase("Kana Arima")) {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DashboardKinerjaView.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LaporanKinerjaView.fxml"));
                 Scene scene = searchTextField.getScene();
                 scene.setRoot(loader.load());
             } catch (IOException e) {
-                System.err.println("Error loading performance dashboard: " + e.getMessage());
+                System.err.println("Error loading performance report: " + e.getMessage());
             }
         } else {
             // TODO: Implement search for other artists
             System.out.println("Searching for: " + searchTerm);
+        }
+    }
+
+    public void switchToStaffView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DashboardViewStaff.fxml"));
+            Scene scene = searchTextField.getScene();
+            scene.setRoot(loader.load());
+        } catch (IOException e) {
+            System.err.println("Error loading staff dashboard: " + e.getMessage());
         }
     }
 
@@ -198,19 +176,6 @@ public class DashboardController {
         
         monthlyTotalChart.setData(pieChartData);
         monthlyTotalChart.setStartAngle(90);
-        
-        // Apply custom colors - filled portion in dark blue, remaining in light pink
-        pieChartData.get(0).getNode().setStyle("-fx-pie-color: #1e2a4a;");
-        pieChartData.get(1).getNode().setStyle("-fx-pie-color: #FFE0E9;"); // Lighter pink for remaining portion
-        
-        // Remove the labels from the pie chart sections
-        monthlyTotalChart.setLabelsVisible(false);
-        
-        // Force the chart to stay small
-        monthlyTotalChart.setMaxSize(80, 80);
-        monthlyTotalChart.setPrefSize(80, 80);
-        monthlyTotalChart.setMinSize(80, 80);
-        monthlyTotalChart.setStyle("-fx-pref-width: 80px; -fx-pref-height: 80px; -fx-max-width: 80px; -fx-max-height: 80px;");
     }
 }
 

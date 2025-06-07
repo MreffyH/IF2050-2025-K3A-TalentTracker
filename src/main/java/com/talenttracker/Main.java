@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.scene.text.Font;
 
 public class Main extends Application {
 
@@ -14,7 +15,7 @@ public class Main extends Application {
         try {
             // Create the main container
             BorderPane mainContainer = new BorderPane();
-            mainContainer.setStyle("-fx-background-color: #FFD6E8;");
+            mainContainer.setStyle("-fx-background-color: #FFB7CA;");
 
             // Load and set the header
             FXMLLoader headerLoader = new FXMLLoader(getClass().getResource("/view/HeaderView.fxml"));
@@ -27,7 +28,7 @@ public class Main extends Application {
             mainContainer.setCenter(dashboard);
 
             // Create the scene
-            Scene scene = new Scene(mainContainer, 1200, 750);
+            Scene scene = new Scene(mainContainer, 1920, 1080);
             
             // Load CSS
             scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());

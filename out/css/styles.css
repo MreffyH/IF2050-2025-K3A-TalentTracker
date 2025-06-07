@@ -1,3 +1,31 @@
+@font-face {
+    font-family: 'Gabarito';
+    src: url('Gabarito-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Gabarito Medium';
+    src: url('Gabarito-Medium.ttf');
+}
+
+.root {
+    -fx-font-family: 'Gabarito';
+}
+
+.label-bold {
+    -fx-font-family: 'Gabarito Medium';
+}
+
+.hyperlink {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 16px;
+}
+
+.hyperlink:hover {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 16px;
+}
+
 .nav-item {
     -fx-text-fill: white;
     -fx-font-size: 16px;
@@ -17,4 +45,65 @@
 .profile-role {
     -fx-text-fill: #B0B0B0;
     -fx-font-size: 12px;
+}
+
+/* Calendar Styles */
+.calendar-container {
+    -fx-background-color: white;
+    -fx-padding: 10;
+    -fx-spacing: 10;
+}
+
+.calendar-header {
+    -fx-font-size: 14px;
+    -fx-text-fill: #223055;
+    -fx-font-weight: bold;
+}
+
+.calendar-date {
+    -fx-padding: 5;
+    -fx-font-size: 14px;
+    -fx-text-fill: #223055;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.calendar-date:hover {
+    -fx-background-color: #FFE6F0;
+}
+
+.calendar-date.today {
+    -fx-background-color: #223055;
+    -fx-text-fill: white;
+}
+
+.calendar-date.selected {
+    -fx-background-color: #FFB7CA;
+    -fx-text-fill: #223055;
+    -fx-font-weight: bold;
+}
+
+.calendar-date.inactive-date {
+    -fx-text-fill: #999999;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #223055;
+    -fx-font-size: 16px;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-text-fill: #FFB7CA;
+}
+
+.month-year-container {
+    -fx-spacing: 5;
+}
+
+.month-label, .year-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #223055;
+    -fx-font-weight: bold;
 } 

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.talenttracker.controller.CalendarController"
+      spacing="15"
+      styleClass="calendar-container"
+      prefWidth="320"
+      prefHeight="300">
+
+    <padding>
+        <Insets top="15" right="20" bottom="15" left="20"/>
+    </padding>
+
+    <!-- Month Year Navigation -->
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="prevMonth" text="&lt;" styleClass="nav-button"/>
+        <HBox alignment="CENTER" styleClass="month-year-container">
+            <Label fx:id="monthLabel" styleClass="month-label"/>
+            <Label fx:id="yearLabel" styleClass="year-label"/>
+        </HBox>
+        <Button fx:id="nextMonth" text="&gt;" styleClass="nav-button"/>
+    </HBox>
+
+    <!-- Days of Week Headers -->
+    <GridPane fx:id="weekDaysGrid" vgap="10" hgap="10" alignment="CENTER">
+        <columnConstraints>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+        </columnConstraints>
+    </GridPane>
+
+    <!-- Calendar Grid -->
+    <GridPane fx:id="calendarGrid" vgap="10" hgap="10" alignment="CENTER">
+        <columnConstraints>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+            <ColumnConstraints halignment="CENTER" minWidth="40" prefWidth="40"/>
+        </columnConstraints>
+    </GridPane>
+
+</VBox> 
