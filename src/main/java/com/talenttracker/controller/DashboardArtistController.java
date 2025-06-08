@@ -20,6 +20,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Button;
+import javafx.stage.FileChooser;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,6 +42,7 @@ public class DashboardArtistController {
     private int artistId;
     private String artistFullName;
 
+    @FXML private Button reportButton;
     @FXML private ImageView profileAvatarView;
     @FXML private ImageView downloadIcon;
     @FXML private ImageView salesIcon;
@@ -44,6 +51,7 @@ public class DashboardArtistController {
     @FXML private Label profileNameLabel;
     @FXML private ToggleButton monthFilterButton;
     @FXML private ToggleButton allFilterButton;
+    @FXML private ToggleGroup filterToggleGroup;
 
     @FXML private BarChart<String, Number> topAlbumChart;
     @FXML private LineChart<String, Number> socialMediaChart;
@@ -74,13 +82,18 @@ public class DashboardArtistController {
 
     @FXML
     public void initialize() {
-        if (this.artistId != 0) { // If artistId is already set, load data
-            loadDashboardData();
-        } else { // Otherwise, get it from the logged-in user (initial load)
+        if (this.artistId == 0) { // If artistId is not set, get it from Main
             this.artistId = Main.getLoggedInUserId();
-            if (this.artistId != 0) {
+        }
+
+        filterToggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle != null) {
                 loadDashboardData();
             }
+        });
+
+        if (this.artistId != 0) {
+            monthFilterButton.setSelected(true); // This will trigger the listener and load data
         }
         
         this.artistFullName = Main.getLoggedInUserFullName();
@@ -95,21 +108,161 @@ public class DashboardArtistController {
         }
 
         try {
+            downloadIcon.setImage(new Image("file:img/DownloadIcon.png"));
             salesIcon.setImage(new Image("file:img/MoneyIcon.png"));
             albumsIcon.setImage(new Image("file:img/BagIcon.png"));
             visitorsIcon.setImage(new Image("file:img/VisitorIcon.png"));
         } catch (Exception e) {
             System.err.println("Could not load icons.");
         }
+
+        reportButton.setOnAction(event -> handleReportButton());
+    }
+
+    @FXML
+    private void handleReportButton() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Report");
+        fileChooser.setInitialFileName(artistFullName.replaceAll("\\s+", "_") + "_Report.csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = fileChooser.showSaveDialog(reportButton.getScene().getWindow());
+
+        if (file != null) {
+            boolean monthFilter = monthFilterButton.isSelected();
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.append("Category,Name,Value,Date\n");
+
+                // Fetch and write Top Album data
+                String topAlbumSql;
+                if (monthFilter) {
+                    topAlbumSql = "SELECT albumName, sold, date FROM TopAlbum WHERE idArtis = ? AND date >= ?";
+                } else {
+                    topAlbumSql = "SELECT albumName, sold, date FROM TopAlbum WHERE idArtis = ?";
+                }
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(topAlbumSql)) {
+                    pstmt.setInt(1, artistId);
+                    if (monthFilter) {
+                        pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1)));
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        String dateStr = (rs.getDate("date") != null) ? rs.getDate("date").toLocalDate().toString() : "N/A";
+                        writer.append("Top Album," + rs.getString("albumName") + "," + rs.getInt("sold") + "," + dateStr + "\n");
+                    }
+                }
+
+                // Fetch and write Popularity data
+                String popularitySql;
+                if (monthFilter) {
+                    popularitySql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ? AND date >= ?";
+                } else {
+                    popularitySql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ?";
+                }
+
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(popularitySql)) {
+                    pstmt.setInt(1, artistId);
+                     if (monthFilter) {
+                        pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1)));
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Popularity," + rs.getString("socialMedia") + "," + rs.getInt("todayFollowers") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+                // Fetch and write Fans Response data
+                String fansResponseSql;
+                if (monthFilter) {
+                    fansResponseSql = "SELECT source, comment, category, timestamp FROM FansResponse WHERE idArtis = ? AND timestamp >= ?";
+                } else {
+                    fansResponseSql = "SELECT source, comment, category, timestamp FROM FansResponse WHERE idArtis = ?";
+                }
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(fansResponseSql)) {
+                    pstmt.setInt(1, artistId);
+                    if (monthFilter) {
+                        pstmt.setTimestamp(2, java.sql.Timestamp.valueOf(LocalDate.now().minusMonths(1).atStartOfDay()));
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Fans Response," + rs.getString("source") + " - " + rs.getString("category") + "," + rs.getString("comment").replace(",", ";") + "," + rs.getTimestamp("timestamp").toLocalDateTime().toLocalDate().toString() + "\n");
+                    }
+                }
+                
+                // Fetch and write Sales data
+                String salesSql;
+                if(monthFilter){
+                    salesSql = "SELECT salesToday, date FROM Sales WHERE idArtis = ? AND date >= ?";
+                } else {
+                    salesSql = "SELECT salesToday, date FROM Sales WHERE idArtis = ?";
+                }
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(salesSql)) {
+                    pstmt.setInt(1, artistId);
+                    if (monthFilter) {
+                        pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1)));
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Sales," + "Daily Sale" + "," + rs.getDouble("salesToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+                // Fetch and write Album Sold data
+                String albumSoldSql;
+                if (monthFilter) {
+                    albumSoldSql = "SELECT albumSoldToday, date FROM AlbumSold WHERE idArtis = ? AND date >= ?";
+                } else {
+                    albumSoldSql = "SELECT albumSoldToday, date FROM AlbumSold WHERE idArtis = ?";
+                }
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
+                    pstmt.setInt(1, artistId);
+                    if (monthFilter) {
+                        pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1)));
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Album Sold," + "Daily Album Sold" + "," + rs.getInt("albumSoldToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+                // Fetch and write Visitors data
+                String visitorsSql;
+                 if (monthFilter) {
+                    visitorsSql = "SELECT visitorsToday, date FROM Visitors WHERE idArtis = ? AND date >= ?";
+                } else {
+                    visitorsSql = "SELECT visitorsToday, date FROM Visitors WHERE idArtis = ?";
+                }
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(visitorsSql)) {
+                    pstmt.setInt(1, artistId);
+                    if (monthFilter) {
+                        pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1)));
+                    }
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Visitors," + "Daily Visitors" + "," + rs.getInt("visitorsToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+            } catch (IOException | SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void loadDashboardData() {
         if (artistId == 0) return; // Don't load data if no artist is set
 
+        boolean monthFilter = monthFilterButton.isSelected();
+
         loadTopAlbumChart();
-        loadSocialMediaChart();
-        loadFansResponses();
-        loadDashboardMetrics();
+        loadSocialMediaChart(monthFilter);
+        loadFansResponses(monthFilter);
+        loadDashboardMetrics(monthFilter);
     }
 
     private void loadTopAlbumChart() {
@@ -130,11 +283,16 @@ public class DashboardArtistController {
         topAlbumChart.getData().add(series);
     }
 
-    private void loadSocialMediaChart() {
+    private void loadSocialMediaChart(boolean monthFilter) {
         socialMediaChart.getData().clear();
-        String sql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ? AND date >= ? ORDER BY date ASC";
+        String sql;
+        if (monthFilter) {
+            sql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ? AND date >= ? ORDER BY date ASC";
+        } else {
+            sql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ? ORDER BY date ASC";
+        }
         Map<String, XYChart.Series<String, Number>> seriesMap = new HashMap<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd", Locale.ENGLISH);
 
         for(String platform : new String[]{"Instagram", "X", "TikTok"}){
             XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -145,7 +303,9 @@ public class DashboardArtistController {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, artistId);
-            pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1))); 
+            if (monthFilter) {
+                pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1)));
+            }
             ResultSet rs = pstmt.executeQuery();
             while(rs.next()){
                 seriesMap.get(rs.getString("socialMedia")).getData().add(new XYChart.Data<>(rs.getDate("date").toLocalDate().format(formatter), rs.getInt("todayFollowers")));
@@ -156,14 +316,22 @@ public class DashboardArtistController {
         socialMediaChart.getData().addAll(seriesMap.values());
     }
 
-    private void loadFansResponses() {
+    private void loadFansResponses(boolean monthFilter) {
         ObservableList<FanResponse> responses = FXCollections.observableArrayList();
-        String sql = "SELECT source, comment, category FROM FansResponse WHERE idArtis = ? ORDER BY timestamp DESC LIMIT 5";
+        String sql;
+        if (monthFilter) {
+            sql = "SELECT source, comment, category FROM FansResponse WHERE idArtis = ? AND timestamp >= ? ORDER BY timestamp DESC";
+        } else {
+            sql = "SELECT source, comment, category FROM FansResponse WHERE idArtis = ? ORDER BY timestamp DESC";
+        }
         int positive = 0, negative = 0, neutral = 0;
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, artistId);
+            if (monthFilter) {
+                pstmt.setTimestamp(2, java.sql.Timestamp.valueOf(LocalDate.now().minusMonths(1).atStartOfDay()));
+            }
             ResultSet rs = pstmt.executeQuery();
             int counter = 1;
             while(rs.next()) {
@@ -209,7 +377,7 @@ public class DashboardArtistController {
         }
     }
 
-    private void loadDashboardMetrics() {
+    private void loadDashboardMetrics(boolean monthFilter) {
         if (artistId == 0) return;
 
         LocalDate today = LocalDate.now();
@@ -234,7 +402,7 @@ public class DashboardArtistController {
         updateChangeLabel(visitorsChangeLabel, todayVisitors, yesterdayVisitors);
 
         // Social Media Followers
-        loadSocialPopularityStats();
+        loadSocialPopularityStats(monthFilter);
     }
     
     private double getMetricForDate(String tableName, String columnName, LocalDate date) {
@@ -263,17 +431,17 @@ public class DashboardArtistController {
         changeLabel.setText(String.format("%+.0f%% vs yesterday", percentChange));
     }
 
-    private void loadSocialPopularityStats() {
+    private void loadSocialPopularityStats(boolean monthFilter) {
         double currentFollowers = getFollowerTotalForDate(LocalDate.now());
         double lastMonthFollowers = getFollowerTotalForDate(LocalDate.now().minusMonths(1));
 
-        socialTotalFollowersLabel.setText(String.format("%,.0f Followers", currentFollowers));
+        socialTotalFollowersLabel.setText(String.format(Locale.US, "%,.0f Followers", currentFollowers));
         if (lastMonthFollowers == 0) {
-             socialPopularityChangeLabel.setText(currentFollowers > 0 ? "+100%" : "N/A");
-             return;
+            socialPopularityChangeLabel.setText(currentFollowers > 0 ? "+100%" : "N/A");
+            return;
         }
         double followerChange = ((currentFollowers - lastMonthFollowers) / lastMonthFollowers) * 100;
-        socialPopularityChangeLabel.setText(String.format("%+.0f%% VS LAST MONTH", followerChange));
+        socialPopularityChangeLabel.setText(String.format("%+.0f%%", followerChange));
     }
     
     private double getFollowerTotalForDate(LocalDate date) {

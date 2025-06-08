@@ -37,6 +37,12 @@
                      <children>
                         <ImageView fx:id="artistAvatarView" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" />
                         <Label fx:id="artistNameLabel" style="-fx-background-color: white; -fx-background-radius: 25; -fx-padding: 10 30; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);" text="Kana Arima" />
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Button fx:id="reportButton" mnemonicParsing="false" style="-fx-background-color: white; -fx-background-radius: 50;" text="Report Summary">
+                           <graphic>
+                              <ImageView fx:id="downloadIcon" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true" />
+                           </graphic>
+                        </Button>
                      </children>
                   </HBox>
                   <!-- Main 3-column Grid -->
@@ -124,39 +130,27 @@
                         <VBox spacing="20.0" GridPane.columnIndex="2">
                            <children>
                               <!-- Visitors Stat Card -->
-                              <VBox alignment="CENTER" prefHeight="175.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);">
+                              <VBox alignment="CENTER" prefHeight="205.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);">
                                  <children>
-                                    <Pane prefHeight="178.0" prefWidth="220.0">
-                                       <children>
-                                          <ImageView fx:id="visitorsIconView" fitHeight="30.0" fitWidth="30.0" layoutX="95.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true" />
-                                       </children>
-                                    </Pane>
+                                    <ImageView fx:id="visitorsIconView" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
                                     <Label fx:id="visitorsCountLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="20020" />
                                     <Label text="New Visitors" />
                                     <Label fx:id="visitorsChangeLabel" style="-fx-text-fill: #4caf50;" text="+3% from yesterday" />
                                  </children>
                               </VBox>
                               <!-- Sales Stat Card -->
-                              <VBox alignment="CENTER" prefHeight="175.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);">
+                              <VBox alignment="CENTER" prefHeight="205.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);">
                                  <children>
-                                    <Pane prefHeight="178.0" prefWidth="220.0">
-                                       <children>
-                                          <ImageView fx:id="salesIconView" fitHeight="30.0" fitWidth="30.0" layoutX="96.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true" />
-                                       </children>
-                                    </Pane>
+                                    <ImageView fx:id="salesIconView" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
                                     <Label fx:id="salesAmountLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="IDR 500,000.00" />
                                     <Label text="Total Sales" />
                                     <Label fx:id="salesChangeLabel" style="-fx-text-fill: #4caf50;" text="+10% from yesterday" />
                                  </children>
                               </VBox>
                               <!-- Album Sold Stat Card -->
-                              <VBox alignment="CENTER" prefHeight="175.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);">
+                              <VBox alignment="CENTER" prefHeight="205.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);">
                                  <children>
-                                    <Pane prefHeight="178.0" prefWidth="220.0">
-                                       <children>
-                                          <ImageView fx:id="albumsSoldIconView" fitHeight="30.0" fitWidth="30.0" layoutX="97.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true" />
-                                       </children>
-                                    </Pane>
+                                    <ImageView fx:id="albumsSoldIconView" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
                                     <Label fx:id="albumsSoldCountLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="400" />
                                     <Label text="Album Sold" />
                                     <Label fx:id="albumsSoldChangeLabel" style="-fx-text-fill: #4caf50;" text="+2% from yesterday" />

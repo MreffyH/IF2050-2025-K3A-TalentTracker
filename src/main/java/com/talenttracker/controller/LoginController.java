@@ -68,6 +68,7 @@ public class LoginController {
 
                 Stage stage = (Stage) emailField.getScene().getWindow();
                 Scene scene = new Scene(mainLayout, 1920, 1080);
+                scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
                 stage.setScene(scene);
                 stage.show();
 

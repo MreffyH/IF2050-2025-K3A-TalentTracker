@@ -16,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+import javafx.stage.FileChooser;
 
 import java.sql.ResultSet;
 import java.text.NumberFormat;
@@ -33,6 +34,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class LaporanKinerjaController {
 
@@ -43,6 +47,8 @@ public class LaporanKinerjaController {
     @FXML private Label successMessageLabel;
     @FXML private ImageView artistAvatarView;
     @FXML private Label artistNameLabel;
+    @FXML private Button reportButton;
+    @FXML private ImageView downloadIcon;
 
     // Charts
     @FXML private BarChart<String, Number> topAlbumChart;
@@ -96,9 +102,11 @@ public class LaporanKinerjaController {
     );
 
     private int artistId;
+    private String artistFullName;
 
     public void setArtist(int artistId, String artistName) {
         this.artistId = artistId;
+        this.artistFullName = artistName;
         this.artistNameLabel.setText(artistName);
         
         // Update profile image
@@ -107,6 +115,7 @@ public class LaporanKinerjaController {
             Image profileImage = new Image("file:img/" + profileImageName);
             if (!profileImage.isError()) {
                 artistAvatarView.setImage(profileImage);
+                downloadIcon.setImage(new Image("file:img/DownloadIcon.png"));
             } else {
                  System.err.println("Could not load profile image: " + profileImageName);
             }
@@ -120,17 +129,39 @@ public class LaporanKinerjaController {
     
     @FXML
     public void initialize() {
-        // Data will be loaded when setArtist is called.
-        // We can initialize UI components that don't depend on the artist.
-        initializeImageViews();
-        setupComboBox();
-        setupButtonHandlers();
-        
-        // Initialize chart series
+        // Initialize chart series first
         topAlbumSeries = new XYChart.Series<>();
         topAlbumChart.getData().add(topAlbumSeries);
         socialMediaChart.getData().clear();
         socialMediaChart.setAnimated(true);
+
+        this.artistId = Main.getLoggedInUserId();
+        this.artistFullName = Main.getLoggedInUserFullName();
+
+        if (artistId != 0) {
+            loadAllDataFromDatabase();
+        }
+        
+        artistNameLabel.setText(this.artistFullName);
+
+        String profileImageName = this.artistFullName.replaceAll("\\s+", "") + "Profile.png";
+        try {
+            artistAvatarView.setImage(new Image("file:img/" + profileImageName));
+            downloadIcon.setImage(new Image("file:img/DownloadIcon.png"));
+        } catch (Exception e) {
+            System.err.println("Could not load image(s): " + e.getMessage());
+            artistAvatarView.setImage(new Image("file:img/DefaultArtist.png"));
+        }
+
+        // Setup button actions
+        reportButton.setOnAction(event -> handleReportButton());
+        addAlbumButton.setOnAction(e -> handleAddAlbum());
+        addSocialButton.setOnAction(e -> handleAddSocial());
+        addVisitorsButton.setOnAction(e -> handleAddVisitors());
+        addSalesButton.setOnAction(e -> handleAddSales());
+        
+        setupComboBox();
+        initializeImageViews();
 
         if ("Artist".equalsIgnoreCase(Main.getLoggedInUserRole())) {
             setArtist(Main.getLoggedInUserId(), Main.getLoggedInUserFullName());
@@ -452,5 +483,89 @@ public class LaporanKinerjaController {
         fadeIn.setOnFinished(event -> pause.play());
         pause.setOnFinished(event -> fadeOut.play());
         fadeIn.play();
+    }
+
+    @FXML
+    private void handleReportButton() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Report");
+        fileChooser.setInitialFileName(artistFullName.replaceAll("\\s+", "_") + "_Performance_Report.csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = fileChooser.showSaveDialog(reportButton.getScene().getWindow());
+
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.append("Category,Name,Value,Date\n");
+
+                // Fetch and write Top Album data
+                String topAlbumSql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ?";
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(topAlbumSql)) {
+                    pstmt.setInt(1, artistId);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Top Album," + rs.getString("albumName") + "," + rs.getInt("sold") + ",N/A\n");
+                    }
+                }
+
+                // Fetch and write Popularity data
+                String popularitySql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ?";
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(popularitySql)) {
+                    pstmt.setInt(1, artistId);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Popularity," + rs.getString("socialMedia") + "," + rs.getInt("todayFollowers") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+                // Fetch and write Fans Response data
+                String fansResponseSql = "SELECT source, comment, category, timestamp FROM FansResponse WHERE idArtis = ?";
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(fansResponseSql)) {
+                    pstmt.setInt(1, artistId);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Fans Response," + rs.getString("source") + " - " + rs.getString("category") + "," + rs.getString("comment").replace(",", ";") + "," + rs.getTimestamp("timestamp").toLocalDateTime().toLocalDate().toString() + "\n");
+                    }
+                }
+
+                // Fetch and write Sales data
+                String salesSql = "SELECT salesToday, date FROM Sales WHERE idArtis = ?";
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(salesSql)) {
+                    pstmt.setInt(1, artistId);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Sales," + "Daily Sale" + "," + rs.getDouble("salesToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+                // Fetch and write Album Sold data
+                String albumSoldSql = "SELECT albumSoldToday, date FROM AlbumSold WHERE idArtis = ?";
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
+                    pstmt.setInt(1, artistId);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Album Sold," + "Daily Album Sold" + "," + rs.getInt("albumSoldToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+                // Fetch and write Visitors data
+                String visitorsSql = "SELECT visitorsToday, date FROM Visitors WHERE idArtis = ?";
+                try (Connection conn = DatabaseManager.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(visitorsSql)) {
+                    pstmt.setInt(1, artistId);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        writer.append("Visitors," + "Daily Visitors" + "," + rs.getInt("visitorsToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
+                    }
+                }
+
+            } catch (IOException | SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
