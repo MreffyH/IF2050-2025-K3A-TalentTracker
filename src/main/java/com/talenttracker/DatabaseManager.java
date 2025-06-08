@@ -84,4 +84,22 @@ public class DatabaseManager {
         }
         return null; // Return null on failure
     }
+
+    public static void getAllUsers() {
+        String query = "SELECT email, role, fullName FROM `user`";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            try (ResultSet rs = pstmt.executeQuery()) {
+                System.out.println("Users in database:");
+                while (rs.next()) {
+                    String email = rs.getString("email");
+                    String role = rs.getString("role");
+                    String fullName = rs.getString("fullName");
+                    System.out.println("Email: " + email + ", Role: " + role + ", Full Name: " + fullName);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 } 

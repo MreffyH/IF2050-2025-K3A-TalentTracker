@@ -233,12 +233,25 @@ public class LaporanKinerjaController {
                 e.printStackTrace();
             }
 
-            // Assuming the label format is "IDR ###,###.##"
-            String currentSalesText = salesAmountLabel.getText().replace("IDR ", "").replace(".", "").replace(",", ".");
-            double currentSales = Double.parseDouble(currentSalesText);
-            
-            double newTotal = currentSales + salesToday;
+            // Use NumberFormat for locale-specific parsing
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+            double currentSales = 0;
+            try {
+                // Remove the currency symbol and parse
+                String salesText = salesAmountLabel.getText().replace("IDR", "").trim();
+                currentSales = currencyFormat.parse(salesText).doubleValue();
+            } catch (java.text.ParseException e) {
+                // Fallback for plain numbers if parsing fails
+                try {
+                    currentSales = Double.parseDouble(salesAmountLabel.getText());
+                } catch (NumberFormatException nfe) {
+                    System.err.println("Could not parse current sales amount: " + salesAmountLabel.getText());
+                    nfe.printStackTrace();
+                    return; // Exit if parsing fails
+                }
+            }
+
+            double newTotal = currentSales + salesToday;
             salesAmountLabel.setText(currencyFormat.format(newTotal));
             
             salesTodayField.clear();

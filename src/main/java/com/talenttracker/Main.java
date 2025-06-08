@@ -7,40 +7,35 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.scene.text.Font;
+import java.io.IOException;
 
 public class Main extends Application {
 
+    private static String loggedInUserRole;
+    private static String loggedInUserFullName;
+
     @Override
-    public void start(Stage primaryStage) {
-        try {
-            // Create the main container
-            BorderPane mainContainer = new BorderPane();
-            mainContainer.setStyle("-fx-background-color: #FFB7CA;");
+    public void start(Stage primaryStage) throws IOException {
+        // DatabaseManager.setupDatabase(); // No longer needed
+        Parent root = FXMLLoader.load(getClass().getResource("/view/login.fxml"));
+        Scene scene = new Scene(root, 1920, 1080);
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        primaryStage.setTitle("Talent Tracker");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
 
-            // Load and set the header
-            FXMLLoader headerLoader = new FXMLLoader(getClass().getResource("/view/HeaderView.fxml"));
-            Parent header = headerLoader.load();
-            mainContainer.setTop(header);
+    public static void setLoggedInUser(String role, String fullName) {
+        loggedInUserRole = role;
+        loggedInUserFullName = fullName;
+    }
 
-            // Load and set the dashboard content
-            FXMLLoader dashboardLoader = new FXMLLoader(getClass().getResource("/view/DashboardView.fxml"));
-            Parent dashboard = dashboardLoader.load();
-            mainContainer.setCenter(dashboard);
+    public static String getLoggedInUserRole() {
+        return loggedInUserRole;
+    }
 
-            // Create the scene
-            Scene scene = new Scene(mainContainer, 1920, 1080);
-            
-            // Load CSS
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-
-            primaryStage.setTitle("Talent Tracker");
-            primaryStage.setScene(scene);
-            primaryStage.show();
-
-        } catch (Exception e) {
-            System.err.println("Error loading FXML files:");
-            e.printStackTrace();
-        }
+    public static String getLoggedInUserFullName() {
+        return loggedInUserFullName;
     }
 
     public static void main(String[] args) {

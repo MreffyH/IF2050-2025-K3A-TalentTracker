@@ -1,5 +1,6 @@
 package com.talenttracker.controller;
 
+import com.talenttracker.Main;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -26,6 +27,11 @@ public class HeaderController {
     private Label roleLabel;
 
     @FXML
+    private Label projectLabel;
+    @FXML
+    private Label attendanceLabel;
+
+    @FXML
     public void initialize() {
         try {
             // Load logo image
@@ -47,8 +53,20 @@ public class HeaderController {
             }
             
             // Set user info
-            nameLabel.setText("Reffy Mahardika");
-            roleLabel.setText("Staff");
+            String userRole = Main.getLoggedInUserRole();
+            nameLabel.setText(Main.getLoggedInUserFullName());
+            roleLabel.setText(userRole);
+
+            if ("Artist".equalsIgnoreCase(userRole)) {
+                if (projectLabel != null) {
+                    projectLabel.setVisible(false);
+                    projectLabel.setManaged(false);
+                }
+                if (attendanceLabel != null) {
+                    attendanceLabel.setVisible(false);
+                    attendanceLabel.setManaged(false);
+                }
+            }
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,7 +77,8 @@ public class HeaderController {
     public void navigateToDashboard() {
         try {
             BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DashboardView.fxml"));
+            String view = "Artist".equalsIgnoreCase(Main.getLoggedInUserRole()) ? "/view/DashboardViewArtist.fxml" : "/view/DashboardView.fxml";
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(view));
             mainContainer.setCenter(loader.load());
         } catch (IOException e) {
             e.printStackTrace();
@@ -78,6 +97,12 @@ public class HeaderController {
     
     @FXML
     public void navigateToSchedule() {
-        // Navigation will be implemented later
+        try {
+            BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/CalendarView.fxml"));
+            mainContainer.setCenter(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 } 
