@@ -112,27 +112,27 @@
                                     <VBox alignment="CENTER" style="-fx-background-color: #223055; -fx-text-fill: white; -fx-padding: 15; -fx-background-radius: 6;">
                                        <children>
                                           <ImageView fx:id="dollarIconView" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" text="IRD 500M" />
+                                          <Label fx:id="totalSalesLabel" style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" text="IRD 500M" />
                                           <Label style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 12px; -fx-text-fill: #cccccc;" text="Total Sales" />
-                                          <Label style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #FEB95A;" text="+10% from yesterday" />
+                                          <Label fx:id="totalSalesChangeLabel" style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #FEB95A;" text="+10% from yesterday" />
                                        </children>
                                     </VBox>
                                     <!-- Stat Card 2: Album Sold -->
                                     <VBox alignment="CENTER" style="-fx-background-color: #223055; -fx-text-fill: white; -fx-padding: 15; -fx-background-radius: 6;" GridPane.columnIndex="1">
                                        <children>
                                            <ImageView fx:id="bagIconView" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" text="400" />
+                                          <Label fx:id="albumsSoldLabel" style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" text="400" />
                                           <Label style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 12px; -fx-text-fill: #cccccc;" text="Album Sold" />
-                                          <Label style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #F2C8ED;" text="+2% from yesterday" />
+                                          <Label fx:id="albumsSoldChangeLabel" style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #F2C8ED;" text="+2% from yesterday" />
                                        </children>
                                     </VBox>
                                     <!-- Stat Card 3: New Visitors -->
                                     <VBox alignment="CENTER" style="-fx-background-color: #223055; -fx-text-fill: white; -fx-padding: 15; -fx-background-radius: 6;" GridPane.columnIndex="2">
                                        <children>
                                            <ImageView fx:id="usersIconView" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" text="20020" />
+                                          <Label fx:id="newVisitorsLabel" style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" text="20020" />
                                           <Label style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 12px; -fx-text-fill: #cccccc;" text="New Visitors" />
-                                          <Label style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #20AEF3;" text="+5% from yesterday" />
+                                          <Label fx:id="newVisitorsChangeLabel" style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #20AEF3;" text="+5% from yesterday" />
                                        </children>
                                     </VBox>
                                  </children>
@@ -143,8 +143,8 @@
                         <VBox alignment="TOP_CENTER" style="-fx-background-color: white; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1);" GridPane.columnIndex="1" GridPane.rowIndex="0">
                            <children>
                               <Label style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="Monthly Total" />
-                              <Label style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333333; -fx-padding: 5 0 0 0;" text="IDR 250M" />
-                              <Label style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #666666; -fx-padding: 0 0 10 0;" text="Profit is 48% More" />
+                              <Label fx:id="monthlyTotalLabel" style="-fx-font-family: 'Gabarito-Medium'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333333; -fx-padding: 5 0 0 0;" text="IDR 250M" />
+                              <Label fx:id="monthlyTotalChangeLabel" style="-fx-font-family: 'Gabarito-Regular'; -fx-font-size: 10px; -fx-text-fill: #666666; -fx-padding: 0 0 10 0;" text="Profit is 48% More" />
                               <PieChart fx:id="monthlyTotalChart" legendVisible="false" maxHeight="80.0" maxWidth="80.0" minHeight="80.0" minWidth="80.0" prefHeight="80.0" prefWidth="80.0" />
                            </children>
                         </VBox>

@@ -1,282 +1,318 @@
 package com.talenttracker.controller;
 
+import com.talenttracker.DatabaseManager;
+import com.talenttracker.Main;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.control.ToggleButton;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Locale;
 
 public class DashboardArtistController {
 
-    // --- Injected Header Controller ---
-    @FXML private HeaderController headerComponentController;
+    private int artistId;
+    private String artistFullName;
 
-    // --- UI Elements ---
     @FXML private ImageView profileAvatarView;
+    @FXML private ImageView downloadIcon;
+    @FXML private ImageView salesIcon;
+    @FXML private ImageView albumsIcon;
+    @FXML private ImageView visitorsIcon;
     @FXML private Label profileNameLabel;
-    @FXML private ToggleGroup filterToggleGroup;
     @FXML private ToggleButton monthFilterButton;
     @FXML private ToggleButton allFilterButton;
-    @FXML private Button reportButton;
 
-    // Charts
     @FXML private BarChart<String, Number> topAlbumChart;
-    @FXML private CategoryAxis topAlbumXAxis;
-    @FXML private NumberAxis topAlbumYAxis;
     @FXML private LineChart<String, Number> socialMediaChart;
-    @FXML private CategoryAxis socialMediaXAxis;
-    @FXML private NumberAxis socialMediaYAxis;
-    @FXML private PieChart sentimentChart;
 
-    // Fans Responses Table
     @FXML private TableView<FanResponse> responsesTable;
-    @FXML private TableColumn<FanResponse, String> numberCol;
+    @FXML private TableColumn<FanResponse, Integer> numberCol;
     @FXML private TableColumn<FanResponse, String> sourceCol;
     @FXML private TableColumn<FanResponse, String> commentCol;
     @FXML private TableColumn<FanResponse, String> categoryCol;
 
-    // Sentiment Legend
+    @FXML private PieChart sentimentChart;
     @FXML private VBox legendPane;
 
-    // Metric Icons
-    @FXML private ImageView salesIcon;
-    @FXML private ImageView albumsIcon;
-    @FXML private ImageView visitorsIcon;
+    @FXML private Label socialPopularityChangeLabel;
+    @FXML private Label socialTotalFollowersLabel;
+    @FXML private Label totalSalesLabel;
+    @FXML private Label totalSalesChangeLabel;
+    @FXML private Label albumsSoldLabel;
+    @FXML private Label albumsSoldChangeLabel;
+    @FXML private Label visitorsLabel;
+    @FXML private Label visitorsChangeLabel;
 
-    // --- Data Series for Charts ---
-    private XYChart.Series<String, Number> topAlbumSeries;
-    private XYChart.Series<String, Number> socialMediaSeries;
-    private final Random random = new Random();
-    private final List<String> barColors = Arrays.asList(
-            "#FFB74D", "#FFA726", "#EC407A", "#42A5F5",
-            "#AB47BC", "#81C784", "#4DB6AC", "#64B5F6", "#90A4AE"
-    );
-
-    public void initialize() {
-        // Setup UI components
-        initializeImageViews();
-        setupCharts();
-        setupResponsesTable();
-        createSentimentLegend();
-        setupButtonHandlers();
+    public void setArtistId(int artistId) {
+        this.artistId = artistId;
+        this.artistFullName = Main.getLoggedInUserFullName(); // It's better to get the full name here as well
+        loadDashboardData();
     }
 
-    private void initializeImageViews() {
+    @FXML
+    public void initialize() {
+        if (this.artistId != 0) { // If artistId is already set, load data
+            loadDashboardData();
+        } else { // Otherwise, get it from the logged-in user (initial load)
+            this.artistId = Main.getLoggedInUserId();
+            if (this.artistId != 0) {
+                loadDashboardData();
+            }
+        }
+        
+        this.artistFullName = Main.getLoggedInUserFullName();
+        
+        profileNameLabel.setText(this.artistFullName);
+        String profileImageName = this.artistFullName.replaceAll("\\s+", "") + "Profile.png";
         try {
-            profileAvatarView.setImage(new Image("file:img/KanaArimaProfile.png"));
-            visitorsIcon.setImage(new Image("file:img/VisitorIcon.png"));
+            profileAvatarView.setImage(new Image("file:img/" + profileImageName));
+        } catch (Exception e) {
+            System.err.println("Could not load profile image: " + profileImageName);
+            profileAvatarView.setImage(new Image("file:img/DefaultArtist.png")); 
+        }
+
+        try {
             salesIcon.setImage(new Image("file:img/MoneyIcon.png"));
             albumsIcon.setImage(new Image("file:img/BagIcon.png"));
+            visitorsIcon.setImage(new Image("file:img/VisitorIcon.png"));
         } catch (Exception e) {
-            System.err.println("Error loading images: " + e.getMessage());
+            System.err.println("Could not load icons.");
         }
     }
 
-    private void setupCharts() {
-        // --- Top Album Chart ---
-        topAlbumSeries = new XYChart.Series<>();
-        topAlbumSeries.getData().addAll(
-                new XYChart.Data<>("Gnarly", 300), new XYChart.Data<>("Afnan", 150),
-                new XYChart.Data<>("Swicy", 250), new XYChart.Data<>("Idol", 800),
-                new XYChart.Data<>("Fun", 550), new XYChart.Data<>("No Way", 750),
-                new XYChart.Data<>("Robloks", 850), new XYChart.Data<>("OMG", 200),
-                new XYChart.Data<>("Love", 250), new XYChart.Data<>("Moreg", 100)
-        );
-        topAlbumChart.getData().add(topAlbumSeries);
-        styleBarChartNodes();
+    private void loadDashboardData() {
+        if (artistId == 0) return; // Don't load data if no artist is set
 
-        // --- Social Media Chart ---
-        socialMediaSeries = new XYChart.Series<>();
-        socialMediaSeries.getData().addAll(
-                new XYChart.Data<>("W1", 1000), new XYChart.Data<>("W2", 1500),
-                new XYChart.Data<>("W3", 2500), new XYChart.Data<>("W4", 4000)
-        );
-        socialMediaChart.getData().add(socialMediaSeries);
-
-        // --- Sentiment Pie Chart ---
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Positive", 60),
-                new PieChart.Data("Negative", 20),
-                new PieChart.Data("Neutral", 20)
-        );
-        sentimentChart.setData(pieChartData);
-        sentimentChart.setStartAngle(90); // Adjust start angle for aesthetics
+        loadTopAlbumChart();
+        loadSocialMediaChart();
+        loadFansResponses();
+        loadDashboardMetrics();
     }
 
-    private void setupResponsesTable() {
+    private void loadTopAlbumChart() {
+        topAlbumChart.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        String sql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ? ORDER BY sold DESC LIMIT 7";
+        
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()) {
+                series.getData().add(new XYChart.Data<>(rs.getString("albumName"), rs.getInt("sold")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        topAlbumChart.getData().add(series);
+    }
+
+    private void loadSocialMediaChart() {
+        socialMediaChart.getData().clear();
+        String sql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ? AND date >= ? ORDER BY date ASC";
+        Map<String, XYChart.Series<String, Number>> seriesMap = new HashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
+
+        for(String platform : new String[]{"Instagram", "X", "TikTok"}){
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName(platform);
+            seriesMap.put(platform, series);
+        }
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now().minusMonths(1))); 
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                seriesMap.get(rs.getString("socialMedia")).getData().add(new XYChart.Data<>(rs.getDate("date").toLocalDate().format(formatter), rs.getInt("todayFollowers")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        socialMediaChart.getData().addAll(seriesMap.values());
+    }
+
+    private void loadFansResponses() {
+        ObservableList<FanResponse> responses = FXCollections.observableArrayList();
+        String sql = "SELECT source, comment, category FROM FansResponse WHERE idArtis = ? ORDER BY timestamp DESC LIMIT 5";
+        int positive = 0, negative = 0, neutral = 0;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            ResultSet rs = pstmt.executeQuery();
+            int counter = 1;
+            while(rs.next()) {
+                String category = rs.getString("category");
+                if (category != null) {
+                    responses.add(new FanResponse(counter++, rs.getString("source"), rs.getString("comment"), category));
+                    switch(category){
+                        case "Positive": positive++; break;
+                        case "Negative": negative++; break;
+                        case "Neutral": neutral++; break;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
         numberCol.setCellValueFactory(new PropertyValueFactory<>("number"));
         sourceCol.setCellValueFactory(new PropertyValueFactory<>("source"));
         commentCol.setCellValueFactory(new PropertyValueFactory<>("comment"));
-        categoryCol.setCellValueFactory(new PropertyValueFactory<>("sentiment"));
+        categoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
+        responsesTable.setItems(responses);
 
-        // Custom cell factory for the category column to display colored badges
-        categoryCol.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item == null || empty) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    Label badge = new Label(item);
-                    badge.setStyle("-fx-padding: 4 10; -fx-background-radius: 15; -fx-font-weight: bold; -fx-text-fill: white;");
-                    switch (item.toLowerCase()) {
-                        case "positive":
-                            badge.setStyle(badge.getStyle() + "-fx-background-color: #8bc34a;");
-                            break;
-                        case "negative":
-                            badge.setStyle(badge.getStyle() + "-fx-background-color: #f44336;");
-                            break;
-                        case "neutral":
-                            badge.setStyle(badge.getStyle() + "-fx-background-color: #607d8b;");
-                            break;
-                    }
-                    setGraphic(badge);
-                    setAlignment(Pos.CENTER);
-                }
-            }
-        });
-
-        responsesTable.setItems(getFanResponses());
+        updateSentimentChart(positive, negative, neutral);
     }
-
-    private void styleBarChartNodes() {
-        // This needs to be called after data is added to the chart.
-        topAlbumChart.getData().forEach(series -> {
-            for (int i = 0; i < series.getData().size(); i++) {
-                XYChart.Data<String, Number> data = series.getData().get(i);
-                if (data.getNode() != null) {
-                    String color = barColors.get(i % barColors.size());
-                    data.getNode().setStyle("-fx-bar-fill: " + color + ";");
-                } else {
-                    // Node might not be created immediately, add a listener.
-                    final int index = i;
-                    data.nodeProperty().addListener((ov, oldNode, newNode) -> {
-                        if (newNode != null) {
-                            String color = barColors.get(index % barColors.size());
-                            newNode.setStyle("-fx-bar-fill: " + color + ";");
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    private ObservableList<FanResponse> getFanResponses() {
-        return FXCollections.observableArrayList(
-                new FanResponse("01", "Instagram", "\"She's the queen\"", "Positive"),
-                new FanResponse("02", "X", "\"Ugh, why is Kana even still relevant? She's so annoying now\"", "Negative"),
-                new FanResponse("03", "Instagram", "\"I love how she connects with the audience. Such a natural talent\"", "Positive"),
-                new FanResponse("04", "X", "\"Angel, Cute, OMG I cant even bear my happiness when I met here yesterday\"", "Positive"),
-                new FanResponse("05", "Instagram", "\"She's alright I guess, nothing too special though\"", "Neutral")
-        );
-    }
-
-    private void createSentimentLegend() {
-        List<PieChart.Data> data = sentimentChart.getData();
-        for (PieChart.Data entry : data) {
-            HBox legendItem = new HBox(10);
-            legendItem.setAlignment(Pos.CENTER_LEFT);
-
-            Circle colorCircle = new Circle(6);
-            Label label = new Label(entry.getName());
-            Label percentage = new Label(String.format("%.0f%%", entry.getPieValue()));
-            percentage.setStyle("-fx-font-weight: bold;");
-
-            // Match color with pie chart
-            String colorHex = "";
-            switch (entry.getName().toLowerCase()) {
-                case "positive":
-                    colorHex = "#8bc34a";
-                    break;
-                case "negative":
-                    colorHex = "#f44336";
-                    break;
-                case "neutral":
-                    colorHex = "#607d8b";
-                    break;
-            }
-            colorCircle.setStyle("-fx-fill: " + colorHex + ";");
-
-            HBox labelBox = new HBox(5, colorCircle, label);
-            HBox spacer = new HBox();
-            HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
-            legendItem.getChildren().addAll(labelBox, spacer, percentage);
-            legendPane.getChildren().add(legendItem);
+    
+    private void updateSentimentChart(int positive, int negative, int neutral) {
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        if(positive > 0) pieChartData.add(new PieChart.Data("Positive", positive));
+        if(negative > 0) pieChartData.add(new PieChart.Data("Negative", negative));
+        if(neutral > 0) pieChartData.add(new PieChart.Data("Neutral", neutral));
+        
+        sentimentChart.setData(pieChartData);
+        
+        legendPane.getChildren().clear();
+        Map<String, String> colorMap = Map.of("Positive", "#28a745", "Negative", "#dc3545", "Neutral", "#ffc107");
+        for(final PieChart.Data data : sentimentChart.getData()){
+            HBox legendEntry = new HBox(5);
+            Circle colorDot = new Circle(5, Color.web(colorMap.get(data.getName())));
+            Label legendLabel = new Label(data.getName());
+            legendEntry.getChildren().addAll(colorDot, legendLabel);
+            legendPane.getChildren().add(legendEntry);
         }
     }
 
-    private void setupButtonHandlers() {
-        reportButton.setOnAction(event -> {
-            // Placeholder for report download logic
-            System.out.println("Report Summary button clicked.");
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Report Summary");
-            alert.setHeaderText(null);
-            alert.setContentText("Downloading report summary...");
-            alert.showAndWait();
-        });
+    private void loadDashboardMetrics() {
+        if (artistId == 0) return;
 
-        filterToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null) {
-                // Keep one selected
-                if (oldValue != null) {
-                    oldValue.setSelected(true);
-                } else {
-                    monthFilterButton.setSelected(true);
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        
+        // Sales
+        double todaySales = getMetricForDate("Sales", "salesToday", today);
+        double yesterdaySales = getMetricForDate("Sales", "salesToday", yesterday);
+        totalSalesLabel.setText(String.format(new Locale("id", "ID"), "IDR %,.0f", todaySales));
+        updateChangeLabel(totalSalesChangeLabel, todaySales, yesterdaySales);
+        
+        // Albums
+        double todayAlbums = getMetricForDate("AlbumSold", "albumSoldToday", today);
+        double yesterdayAlbums = getMetricForDate("AlbumSold", "albumSoldToday", yesterday);
+        albumsSoldLabel.setText(String.format("%,.0f", todayAlbums));
+        updateChangeLabel(albumsSoldChangeLabel, todayAlbums, yesterdayAlbums);
+
+        // Visitors
+        double todayVisitors = getMetricForDate("Visitors", "visitorsToday", today);
+        double yesterdayVisitors = getMetricForDate("Visitors", "visitorsToday", yesterday);
+        visitorsLabel.setText(String.format("%,.0f", todayVisitors));
+        updateChangeLabel(visitorsChangeLabel, todayVisitors, yesterdayVisitors);
+
+        // Social Media Followers
+        loadSocialPopularityStats();
+    }
+    
+    private double getMetricForDate(String tableName, String columnName, LocalDate date) {
+        String sql = String.format("SELECT SUM(%s) AS total FROM %s WHERE idArtis = ? AND date = ?", columnName, tableName);
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, this.artistId);
+            pstmt.setDate(2, java.sql.Date.valueOf(date));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("total");
                 }
-            } else {
-                System.out.println("Filter changed to: " + ((ToggleButton) newValue).getText());
-                // Add data filtering logic here based on the selected toggle
             }
-        });
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;
     }
 
-    // --- Data Model for TableView ---
+    private void updateChangeLabel(Label changeLabel, double currentValue, double previousValue) {
+        if (previousValue == 0) {
+            changeLabel.setText(currentValue > 0 ? "+100%" : "N/A");
+            return;
+        }
+        double percentChange = ((currentValue - previousValue) / previousValue) * 100;
+        changeLabel.setText(String.format("%+.0f%% vs yesterday", percentChange));
+    }
+
+    private void loadSocialPopularityStats() {
+        double currentFollowers = getFollowerTotalForDate(LocalDate.now());
+        double lastMonthFollowers = getFollowerTotalForDate(LocalDate.now().minusMonths(1));
+
+        socialTotalFollowersLabel.setText(String.format("%,.0f Followers", currentFollowers));
+        if (lastMonthFollowers == 0) {
+             socialPopularityChangeLabel.setText(currentFollowers > 0 ? "+100%" : "N/A");
+             return;
+        }
+        double followerChange = ((currentFollowers - lastMonthFollowers) / lastMonthFollowers) * 100;
+        socialPopularityChangeLabel.setText(String.format("%+.0f%% VS LAST MONTH", followerChange));
+    }
+    
+    private double getFollowerTotalForDate(LocalDate date) {
+        double totalFollowers = 0;
+        String sql = "SELECT SUM(todayFollowers) as total FROM Popularity WHERE idArtis = ? AND date <= ? " +
+                     "AND (socialMedia, date) IN " +
+                     "(SELECT socialMedia, MAX(date) FROM Popularity WHERE idArtis = ? AND date <= ? GROUP BY socialMedia)";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            pstmt.setDate(2, java.sql.Date.valueOf(date));
+            pstmt.setInt(3, artistId);
+            pstmt.setDate(4, java.sql.Date.valueOf(date));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    totalFollowers = rs.getDouble("total");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return totalFollowers;
+    }
+
     public static class FanResponse {
-        private final String number;
+        private final int number;
         private final String source;
         private final String comment;
-        private final String sentiment;
+        private final String category;
 
-        public FanResponse(String number, String source, String comment, String sentiment) {
+        public FanResponse(int number, String source, String comment, String category) {
             this.number = number;
             this.source = source;
             this.comment = comment;
-            this.sentiment = sentiment;
+            this.category = category;
         }
-
-        public String getNumber() {
-            return number;
-        }
-
-        public String getSource() {
-            return source;
-        }
-
-        public String getComment() {
-            return comment;
-        }
-
-        public String getSentiment() {
-            return sentiment;
-        }
+        public int getNumber() { return number; }
+        public String getSource() { return source; }
+        public String getComment() { return comment; }
+        public String getCategory() { return category; }
     }
 }

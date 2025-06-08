@@ -13,6 +13,7 @@ public class Main extends Application {
 
     private static String loggedInUserRole;
     private static String loggedInUserFullName;
+    private static int loggedInUserId;
 
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -25,7 +26,8 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    public static void setLoggedInUser(String role, String fullName) {
+    public static void setLoggedInUser(int id, String role, String fullName) {
+        loggedInUserId = id;
         loggedInUserRole = role;
         loggedInUserFullName = fullName;
     }
@@ -36,6 +38,10 @@ public class Main extends Application {
 
     public static String getLoggedInUserFullName() {
         return loggedInUserFullName;
+    }
+
+    public static int getLoggedInUserId() {
+        return loggedInUserId;
     }
 
     public static void main(String[] args) {

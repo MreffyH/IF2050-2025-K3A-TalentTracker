@@ -77,9 +77,15 @@ public class HeaderController {
     public void navigateToDashboard() {
         try {
             BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
-            String view = "Artist".equalsIgnoreCase(Main.getLoggedInUserRole()) ? "/view/DashboardViewArtist.fxml" : "/view/DashboardView.fxml";
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(view));
+            String viewPath = "Artist".equalsIgnoreCase(Main.getLoggedInUserRole()) ? "/view/DashboardViewArtist.fxml" : "/view/DashboardView.fxml";
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath));
             mainContainer.setCenter(loader.load());
+
+            if ("Artist".equalsIgnoreCase(Main.getLoggedInUserRole())) {
+                DashboardArtistController controller = loader.getController();
+                controller.setArtistId(Main.getLoggedInUserId());
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

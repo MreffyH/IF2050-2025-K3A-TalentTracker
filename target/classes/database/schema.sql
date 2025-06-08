@@ -122,12 +122,12 @@ ENGINE = InnoDB;
 -- Table `mydb`.`Popularity`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Popularity` (
-  socialMedia ENUM('Instagram', 'X', 'TikTok') NULL,
+  socialMedia ENUM('Instagram', 'X', 'TikTok') NOT NULL,
   todayFollowers INT NULL,
-  date DATE NULL,
+  date DATE NOT NULL,
   idArtis INT NOT NULL,
-  PRIMARY KEY (`idArtis`),
-  CONSTRAINT fk_Popularity_User1
+  PRIMARY KEY (`idArtis`, `socialMedia`, `date`),
+  CONSTRAINT `fk_Popularity_User1`
     FOREIGN KEY (`idArtis`)
     REFERENCES `mydb`.`User` (`idUser`)
     ON DELETE NO ACTION
@@ -140,9 +140,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Visitors` (
   visitorsToday INT NULL,
-  date DATE NULL,
+  date DATE NOT NULL,
   idArtis INT NOT NULL,
-  PRIMARY KEY (`idArtis`),
+  PRIMARY KEY (`idArtis`, `date`),
   CONSTRAINT fk_Visitors_User1
     FOREIGN KEY (`idArtis`)
     REFERENCES `mydb`.`User` (`idUser`)
@@ -155,16 +155,12 @@ ENGINE = InnoDB;
 -- Table `mydb`.`Sales`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Sales` (
-  salesToday INT NULL,
-  date DATE NOT NULL,
-  idStaff INT NOT NULL,
-  PRIMARY KEY (`idStaff`, `date`),
-  CONSTRAINT fk_Sales_User1
-    FOREIGN KEY (`idStaff`)
-    REFERENCES `mydb`.`User` (`idUser`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  idSales INT AUTO_INCREMENT PRIMARY KEY,
+  idArtis INT,
+  date DATE,
+  salesToday DOUBLE,
+  FOREIGN KEY (idArtis) REFERENCES User(idUser)
+);
 
 
 -- -----------------------------------------------------
@@ -191,9 +187,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`AlbumSold` (
   albumSoldToday INT NULL,
-  date DATE NULL,
+  date DATE NOT NULL,
   idArtis INT NOT NULL,
-  PRIMARY KEY (`idArtis`),
+  PRIMARY KEY (`idArtis`, `date`),
   CONSTRAINT fk_AlbumSold_User1
     FOREIGN KEY (`idArtis`)
     REFERENCES `mydb`.`User` (`idUser`)

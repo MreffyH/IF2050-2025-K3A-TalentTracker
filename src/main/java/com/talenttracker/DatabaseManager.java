@@ -34,6 +34,45 @@ public class DatabaseManager {
         );
     }
 
+    public static boolean addUser(int id, String fullName, String email, String password, String role) {
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        String sql = "INSERT INTO User (idUser, fullName, email, password, role) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.setString(2, fullName);
+            pstmt.setString(3, email);
+            pstmt.setString(4, hashedPassword);
+            pstmt.setString(5, role);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static String[] verifyUser(String email, String password) {
+        String query = "SELECT idUser, password, role, fullName FROM `user` WHERE email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, email);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String storedHash = rs.getString("password");
+                    if (BCrypt.checkpw(password, storedHash)) {
+                        String idUser = rs.getString("idUser");
+                        String role = rs.getString("role");
+                        String fullName = rs.getString("fullName");
+                        return new String[]{idUser, role, fullName}; // Return user ID, role, and full name
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Return null on failure
+    }
+
     public static boolean addUser(String fullName, String email, String password, String role) {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         String query = "INSERT INTO `user` (idUser, fullName, email, password, role) VALUES (?, ?, ?, ?, ?)";
@@ -60,29 +99,12 @@ public class DatabaseManager {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
-    public static String[] verifyUser(String email, String password) {
-        String query = "SELECT password, role, fullName FROM `user` WHERE email = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, email);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    String storedHash = rs.getString("password");
-                    if (BCrypt.checkpw(password, storedHash)) {
-                        String role = rs.getString("role");
-                        String fullName = rs.getString("fullName");
-                        return new String[]{role, fullName}; // Return user role and full name on success
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null; // Return null on failure
+    public static boolean addArtist(String fullName, String email, String password) {
+        return addUser(fullName, email, password, "Artist");
     }
 
     public static void getAllUsers() {

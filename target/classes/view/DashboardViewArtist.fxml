@@ -99,9 +99,9 @@
                                           <Label prefHeight="23.0" prefWidth="309.0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="Social Media Popularity" HBox.hgrow="ALWAYS" />
                                           <VBox alignment="CENTER_RIGHT" prefHeight="59.0" prefWidth="300.0">
                                              <children>
-                                                <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="439%" />
+                                                <Label fx:id="socialPopularityChangeLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" />
                                                 <Label style="-fx-font-size: 12px; -fx-text-fill: #666;" text="VS LAST MONTH" />
-                                                <Label style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" text="4,050 Followers" />
+                                                <Label fx:id="socialTotalFollowersLabel" style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" />
                                              </children>
                                           </VBox>
                                        </children>
@@ -162,25 +162,25 @@
                                     <VBox alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);" HBox.hgrow="ALWAYS">
                                        <children>
                                           <ImageView fx:id="salesIcon" fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="\$500k" />
+                                          <Label fx:id="totalSalesLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" />
                                           <Label style="-fx-font-size: 16px; -fx-text-fill: #666;" text="Total Sales" />
-                                          <Label style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" text="+10% from yesterday" />
+                                          <Label fx:id="totalSalesChangeLabel" style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" />
                                        </children>
                                     </VBox>
                                     <VBox alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);" HBox.hgrow="ALWAYS">
                                        <children>
                                           <ImageView fx:id="albumsIcon" fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="400" />
+                                          <Label fx:id="albumsSoldLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" />
                                           <Label style="-fx-font-size: 16px; -fx-text-fill: #666;" text="Album Sold" />
-                                          <Label style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" text="+2% from yesterday" />
+                                          <Label fx:id="albumsSoldChangeLabel" style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" />
                                        </children>
                                     </VBox>
                                     <VBox alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 3);" HBox.hgrow="ALWAYS">
                                        <children>
                                           <ImageView fx:id="visitorsIcon" fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="20020" />
+                                          <Label fx:id="visitorsLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" />
                                           <Label style="-fx-font-size: 16px; -fx-text-fill: #666;" text="New Visitors" />
-                                          <Label style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" text="+3% from yesterday" />
+                                          <Label fx:id="visitorsChangeLabel" style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" />
                                        </children>
                                     </VBox>
                                  </children>

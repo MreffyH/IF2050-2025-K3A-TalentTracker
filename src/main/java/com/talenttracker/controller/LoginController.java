@@ -38,10 +38,11 @@ public class LoginController {
         String[] userInfo = DatabaseManager.verifyUser(email, password);
 
         if (userInfo != null) {
-            String role = userInfo[0];
-            String fullName = userInfo[1];
+            int userId = Integer.parseInt(userInfo[0]);
+            String role = userInfo[1];
+            String fullName = userInfo[2];
             
-            Main.setLoggedInUser(role, fullName);
+            Main.setLoggedInUser(userId, role, fullName);
 
             try {
                 String viewPath;

@@ -23,10 +23,6 @@
 <!-- Main layout for Laporan Kinerja (Performance Report) -->
 
 <BorderPane prefHeight="800.0" prefWidth="1400.0" style="-fx-background-color: #ffc0cb;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.LaporanKinerjaController">
-   <top>
-      <!-- Include the shared header component -->
-      <fx:include fx:id="headerComponent" source="HeaderView.fxml" />
-   </top>
    <center>
       <!-- Use a StackPane to allow the success message to overlay the content -->
       <StackPane>
@@ -80,9 +76,9 @@
                                           <Label prefHeight="23.0" prefWidth="216.0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="Social Media Popularity" HBox.hgrow="ALWAYS" />
                                           <VBox alignment="CENTER_RIGHT" prefHeight="59.0" prefWidth="300.0">
                                              <children>
-                                                <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="439%" />
+                                                <Label fx:id="socialPopularityChangeLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="439%" />
                                                 <Label style="-fx-font-size: 12px; -fx-text-fill: #666;" text="VS LAST MONTH" />
-                                                <Label style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" text="4,050 Followers" />
+                                                <Label fx:id="socialTotalFollowersLabel" style="-fx-font-size: 12px; -fx-text-fill: #4caf50;" text="4,050 Followers" />
                                              </children>
                                           </VBox>
                                        </children>
@@ -137,7 +133,7 @@
                                     </Pane>
                                     <Label fx:id="visitorsCountLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="20020" />
                                     <Label text="New Visitors" />
-                                    <Label style="-fx-text-fill: #4caf50;" text="+3% from yesterday" />
+                                    <Label fx:id="visitorsChangeLabel" style="-fx-text-fill: #4caf50;" text="+3% from yesterday" />
                                  </children>
                               </VBox>
                               <!-- Sales Stat Card -->
@@ -150,7 +146,7 @@
                                     </Pane>
                                     <Label fx:id="salesAmountLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="IDR 500,000.00" />
                                     <Label text="Total Sales" />
-                                    <Label style="-fx-text-fill: #4caf50;" text="+10% from yesterday" />
+                                    <Label fx:id="salesChangeLabel" style="-fx-text-fill: #4caf50;" text="+10% from yesterday" />
                                  </children>
                               </VBox>
                               <!-- Album Sold Stat Card -->
@@ -163,7 +159,7 @@
                                     </Pane>
                                     <Label fx:id="albumsSoldCountLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="400" />
                                     <Label text="Album Sold" />
-                                    <Label style="-fx-text-fill: #4caf50;" text="+2% from yesterday" />
+                                    <Label fx:id="albumsSoldChangeLabel" style="-fx-text-fill: #4caf50;" text="+2% from yesterday" />
                                  </children>
                               </VBox>
                            </children>
