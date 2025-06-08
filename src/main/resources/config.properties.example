@@ -1,0 +1,9 @@
+# Database Configuration
+#
+# Copy this file to 'config.properties' and fill in your local database details.
+# This file is for example purposes and is checked into version control.
+# The 'config.properties' file is ignored by Git to keep your credentials private.
+
+db.url=jdbc:mysql://localhost:3306/mydb
+db.user=your_database_user
+db.password=your_database_password
