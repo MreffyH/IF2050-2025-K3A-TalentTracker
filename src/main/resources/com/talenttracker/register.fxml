@@ -17,9 +17,9 @@
 <?import java.lang.String?>
 
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #FFB7CA;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.RegisterController">
+<Pane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #FFB7CA;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.RegisterController">
    <children>
-      <Pane layoutX="637.0" layoutY="145.5" prefHeight="789.0" prefWidth="646.0" style="-fx-background-color: white; -fx-background-radius: 24;">
+      <Pane fx:id="registerPane" layoutX="${(rootPane.width - registerPane.width) / 2}" layoutY="${(rootPane.height - registerPane.height) / 2}" prefHeight="789.0" prefWidth="646.0" style="-fx-background-color: white; -fx-background-radius: 24;">
          <children>
             <Button fx:id="createAccountButton" layoutX="56.0" layoutY="653.53" mnemonicParsing="false" prefHeight="64.0" prefWidth="259.0" styleClass="label-bold" style="-fx-background-radius: 32; -fx-background-color: #333333; -fx-font-size: 22;" text="Create an account" textFill="WHITE" />
             <Label layoutX="56.0" layoutY="122.53" styleClass="label-bold" style="-fx-font-size: 32;" text="Create an account" textFill="#333333" />

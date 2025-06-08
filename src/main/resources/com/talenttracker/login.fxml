@@ -13,9 +13,9 @@
 <?import javafx.scene.text.Font?>
 
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #FFB7CA;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.LoginController">
+<Pane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #FFB7CA;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.LoginController">
    <children>
-      <Pane layoutX="637.0" layoutY="222.0" prefHeight="635.0" prefWidth="646.0" style="-fx-background-color: white; -fx-background-radius: 24;">
+      <Pane fx:id="loginPane" layoutX="${(rootPane.width - loginPane.width) / 2}" layoutY="${(rootPane.height - loginPane.height) / 2}" prefHeight="635.0" prefWidth="646.0" style="-fx-background-color: white; -fx-background-radius: 24;">
          <effect>
             <DropShadow height="10.0" radius="4.5" width="10.0" />
          </effect>
