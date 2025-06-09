@@ -13,14 +13,12 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         // Load the FXML file
-        Parent root = FXMLLoader.load(getClass().getResource("/AttendanceDashboard.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/SelectionView.fxml"));
         Scene scene = new Scene(root, 1920, 1080);
-        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
-        
-        // Set up the stage (the window)
-        primaryStage.setMaximized(true); // Make the window full screen (Deleted Later)
-        primaryStage.setTitle("AttendanceDashboard");
+        primaryStage.setTitle("Talent Tracker");
+        primaryStage.setMaximized(true);
         primaryStage.setScene(scene);
+        primaryStage.centerOnScreen();
         primaryStage.show();
     }
 
