@@ -1,0 +1,356 @@
+/* Import Gabarito font */
+@font-face {
+    font-family: 'Gabarito';
+    src: url('../fonts/Gabarito-Regular.ttf') format('truetype');
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'Gabarito';
+    src: url('../fonts/Gabarito-Medium.ttf') format('truetype');
+    font-weight: 500;
+}
+
+/* Global font settings */
+.root {
+    -fx-background-color: #FFE4E9;
+    -fx-font-family: 'Gabarito';
+}
+
+* {
+    -fx-font-family: 'Gabarito';
+}
+
+.label {
+    -fx-font-family: 'Gabarito';
+}
+
+.button {
+    -fx-font-family: 'Gabarito';
+}
+
+.text {
+    -fx-font-family: 'Gabarito';
+}
+
+/* Calendar header styling */
+.calendar-header {
+    -fx-background-color: #1E293B;
+    -fx-padding: 15px;
+    -fx-background-radius: 12px;
+}
+
+/* Sidebar styling */
+.source-view {
+    -fx-background-color: #1E293B;
+    -fx-padding: 15px;
+}
+
+/* Calendar source titles (Default, Artists) */
+.source-view > .view-container .header {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.7), 3, 0, 0, 0);
+    -fx-padding: 8px 0;
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-width: 0 0 1 0;
+    -fx-margin: 0 0 10px 0;
+}
+
+/* Calendar source labels (Default, Artists) */
+.source-view .calendar-source-label {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.7), 3, 0, 0, 0);
+    -fx-padding: 5px 0;
+}
+
+/* Calendar labels (Solo Artists, Groups, Trainees) */
+.source-view .calendar-label {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 15px;
+    -fx-font-weight: 400;
+    -fx-text-fill: rgba(255, 255, 255, 0.95);
+    -fx-padding: 5px 0;
+}
+
+/* Calendar checkboxes - Base style */
+.source-view .check-box {
+    -fx-font-family: 'Gabarito';
+    -fx-text-fill: rgba(255, 255, 255, 0.95);
+    -fx-padding: 5px 0;
+}
+
+.source-view .check-box .box {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-radius: 3px;
+}
+
+/* Default checkbox */
+.source-view .check-box:selected .box {
+    -fx-background-color: #FFB6C1;
+}
+
+/* Default calendar checkbox */
+.source-view .calendar-sources > .source-view-list > .virtual-flow > .clipped-container > .sheet > .list-cell:nth-child(0) .check-box:selected .box {
+    -fx-background-color: #FFC0CB; /* Pink */
+}
+
+/* Solo Artists checkbox */
+.source-view .calendar-sources > .source-view-list > .virtual-flow > .clipped-container > .sheet > .list-cell:nth-child(1) .check-box:selected .box {
+    -fx-background-color: #4CAF50; /* Green color matching IU Concert */
+}
+
+/* Groups checkbox */
+.source-view .calendar-sources > .source-view-list > .virtual-flow > .clipped-container > .sheet > .list-cell:nth-child(2) .check-box:selected .box {
+    -fx-background-color: #2196F3; /* Blue color matching BTS Practice */
+}
+
+/* Trainees checkbox */
+.source-view .calendar-sources > .source-view-list > .virtual-flow > .clipped-container > .sheet > .list-cell:nth-child(3) .check-box:selected .box {
+    -fx-background-color: #FFC107; /* Yellow color for Trainees */
+}
+
+.source-view .check-box:hover .box {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+}
+
+.source-view .check-box:selected .mark {
+    -fx-background-color: #FFFFFF;
+}
+
+/* Calendar entries styling */
+.default-style-entry {
+    -fx-background-color: #FFE4E9;
+}
+
+.style1-entry {
+    -fx-background-color: #4CAF50; /* Green for Solo Artists (IU Concert) */
+}
+
+.style2-entry {
+    -fx-background-color: #2196F3; /* Blue for Groups (BTS Practice) */
+}
+
+.style3-entry {
+    -fx-background-color: #FFC107; /* Yellow for Trainees */
+}
+
+/* Additional global styles to ensure Gabarito is used everywhere */
+.calendar-view {
+    -fx-font-family: 'Gabarito';
+}
+
+.date-cell {
+    -fx-font-family: 'Gabarito';
+}
+
+.time-cell {
+    -fx-font-family: 'Gabarito';
+}
+
+.agenda-view {
+    -fx-font-family: 'Gabarito';
+}
+
+.tool-bar {
+    -fx-font-family: 'Gabarito';
+}
+
+.menu-bar {
+    -fx-font-family: 'Gabarito';
+}
+
+.context-menu {
+    -fx-font-family: 'Gabarito';
+}
+
+/* Calendar header labels */
+.calendar-header .label {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 16px;
+    -fx-font-weight: 500;
+    -fx-text-fill: rgba(255, 255, 255, 0.95);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 1, 0, 0, 1);
+}
+
+/* Navigation buttons */
+.calendar-header .button {
+    -fx-background-color: transparent;
+    -fx-text-fill: rgba(255, 255, 255, 0.95);
+    -fx-border-color: transparent;
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 1, 0, 0, 1);
+}
+
+.calendar-header .button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Calendar content */
+.calendar-content {
+    -fx-font-family: 'Gabarito';
+    -fx-font-size: 14px;
+    -fx-font-weight: 400;
+}
+
+/* Calendar grid */
+.calendar-grid {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 5, 0, 0, 2);
+}
+
+/* View selection buttons */
+.view-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #1E293B;
+    -fx-border-color: transparent;
+    -fx-font-family: 'Gabarito';
+    -fx-font-weight: 500;
+    -fx-font-size: 14px;
+    -fx-padding: 5px 10px;
+    -fx-background-radius: 15px;
+}
+
+.view-button:selected {
+    -fx-background-color: #FF9BB3;
+    -fx-text-fill: white;
+}
+
+.calendar-cell {
+    -fx-background-color: white;
+    -fx-border-color: #F0F0F0;
+    -fx-padding: 5px;
+}
+
+.calendar-cell:today {
+    -fx-background-color: #F0F7FF;
+    -fx-border-color: #FF9BB3;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+}
+
+/* Entry styling for different artist types */
+.calendar-entry {
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+    -fx-font-family: 'Gabarito';
+    -fx-font-weight: 400;
+}
+
+.style1 { /* Solo Artists */
+    -fx-background-color: #FFB3D1;
+}
+
+.style2 { /* Boy Groups */
+    -fx-background-color: #B3E0FF;
+}
+
+.style3 { /* Girl Groups */
+    -fx-background-color: #FFD6B3;
+}
+
+.style4 { /* Bands */
+    -fx-background-color: #C2B3FF;
+}
+
+/* Sidebar styling */
+.source-view {
+    -fx-background-color: #1E293B;
+    -fx-text-fill: white;
+    -fx-background-radius: 12px;
+}
+
+.source-view .label {
+    -fx-text-fill: white;
+}
+
+.source-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+}
+
+.source-view .list-cell:selected {
+    -fx-background-color: #FF9BB3;
+}
+
+/* Time display */
+.time-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #64748B;
+}
+
+/* Calendar view specific styles */
+.calendar-view {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);
+}
+
+.day-of-week-label {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 14px;
+    -fx-padding: 5px;
+}
+
+.detail-panel {
+    -fx-background-color: #1E293B;
+    -fx-background-radius: 12px;
+    -fx-padding: 15px;
+}
+
+.detail-panel .label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+/* Artist type colors with better contrast */
+.solo-artist {
+    -fx-background-color: #4ADE80;
+    -fx-text-fill: #1E293B;
+    -fx-font-family: 'Gabarito';
+    -fx-font-weight: 500;
+}
+
+.boy-group {
+    -fx-background-color: #60A5FA;
+    -fx-text-fill: #1E293B;
+    -fx-font-family: 'Gabarito';
+    -fx-font-weight: 500;
+}
+
+.girl-group {
+    -fx-background-color: #F472B6;
+    -fx-text-fill: #1E293B;
+    -fx-font-family: 'Gabarito';
+    -fx-font-weight: 500;
+}
+
+.band {
+    -fx-background-color: #A78BFA;
+    -fx-text-fill: #1E293B;
+    -fx-font-family: 'Gabarito';
+    -fx-font-weight: 500;
+}
+
+/* Selected state */
+.selected {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: 500;
+}
+
+/* View buttons */
+.view-button:hover {
+    -fx-background-color: rgba(30, 41, 59, 0.1);
+}
+
+/* The colors will now be set dynamically from Java code using calendar.setBaseColor() */ 
