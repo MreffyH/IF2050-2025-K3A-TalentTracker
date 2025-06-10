@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentTracker - Add New Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #FFB7CA;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: #223055;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo-nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-btn.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-info {
+            text-align: right;
+        }
+
+        .profile-name {
+            font-weight: bold;
+        }
+
+        .profile-role {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #34495e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 15px;
+            background-color: #f8f9fa;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            background-color: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .staff-container {
+            position: relative;
+        }
+
+        .staff-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            background-color: #f8f9fa;
+            min-height: 60px;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .staff-tag {
+            background-color: #3498db;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .staff-tag .remove-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .staff-input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            min-width: 200px;
+            font-size: 1rem;
+        }
+
+        .staff-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .staff-suggestion {
+            padding: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .staff-suggestion:hover {
+            background-color: #f8f9fa;
+        }
+
+        .staff-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Date input styling */
+        input[type="date"] {
+            position: relative;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="%23666" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>') no-repeat;
+            background-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-nav">
+            <div class="logo">TalentTracker</div>
+            <nav class="nav-buttons">
+                <button class="nav-btn">Dashboard</button>
+                <button class="nav-btn active">Project</button>
+                <button class="nav-btn">Attendance</button>
+                <button class="nav-btn">Schedule</button>
+            </nav>
+        </div>
+        <div class="profile-section">
+            <div class="profile-info">
+                <div class="profile-name">Afnan Haykal</div>
+                <div class="profile-role">CEO</div>
+            </div>
+            <div class="profile-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h1 class="page-title">Add New Projects</h1>
+        
+        <form class="form-container" id="projectForm">
+            <!-- Project Title -->
+            <div class="form-group">
+                <input 
+                    type="text" 
+                    class="form-input" 
+                    placeholder="Project Title" 
+                    id="projectTitle"
+                    required
+                >
+            </div>
+
+            <!-- Project Description -->
+            <div class="form-group">
+                <textarea 
+                    class="form-textarea" 
+                    placeholder="Project Description" 
+                    id="projectDescription"
+                    required
+                ></textarea>
+            </div>
+
+            <!-- Project Type -->
+            <div class="form-group">
+                <select class="form-select" id="projectType" required>
+                    <option value="">Select Project Type</option>
+                    <option value="collab">Collaboration</option>
+                    <option value="live">Live Performance</option>
+                    <option value="comeback">Comeback</option>
+                </select>
+            </div>
+
+            <!-- Deadline -->
+            <div class="form-group">
+                <input 
+                    type="date" 
+                    class="form-input" 
+                    id="projectDeadline"
+                    required
+                >
+            </div>
+
+            <!-- Staff Selection -->
+            <div class="form-group">
+                <div class="staff-container">
+                    <div class="staff-input-container" id="staffContainer">
+                        <input 
+                            type="text" 
+                            class="staff-input" 
+                            placeholder="Add Staff (Enter staff ID or name)"
+                            id="staffInput"
+                        >
+                    </div>
+                    <div class="staff-suggestions" id="staffSuggestions"></div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn">Add Project</button>
+        </form>
+    </main>
+
+    <script>
+        // Sample staff database
+        const staffDatabase = [
+            { id: 'ST001', name: 'John Smith', role: 'Producer' },
+            { id: 'ST002', name: 'Sarah Johnson', role: 'Sound Engineer' },
+            { id: 'ST003', name: 'Mike Chen', role: 'Video Director' },
+            { id: 'ST004', name: 'Emily Davis', role: 'Marketing Manager' },
+            { id: 'ST005', name: 'Alex Rodriguez', role: 'Choreographer' },
+            { id: 'ST006', name: 'Lisa Wang', role: 'Stylist' },
+            { id: 'ST007', name: 'David Brown', role: 'Photographer' },
+            { id: 'ST008', name: 'Anna Kim', role: 'Social Media Manager' }
+        ];
+
+        let selectedStaff = [];
+
+        // Staff input functionality
+        const staffInput = document.getElementById('staffInput');
+        const staffContainer = document.getElementById('staffContainer');
+        const staffSuggestions = document.getElementById('staffSuggestions');
+
+        staffInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            if (query.length > 0) {
+                const matches = staffDatabase.filter(staff => 
+                    staff.name.toLowerCase().includes(query) || 
+                    staff.id.toLowerCase().includes(query)
+                ).filter(staff => !selectedStaff.some(selected => selected.id === staff.id));
+
+                if (matches.length > 0) {
+                    staffSuggestions.innerHTML = matches.map(staff => 
+                        `<div class="staff-suggestion" data-id="${staff.id}">
+                            <strong>${staff.name}</strong> (${staff.id}) - ${staff.role}
+                        </div>`
+                    ).join('');
+                    staffSuggestions.style.display = 'block';
+                } else {
+                    staffSuggestions.style.display = 'none';
+                }
+            } else {
+                staffSuggestions.style.display = 'none';
+            }
+        });
+
+        staffSuggestions.addEventListener('click', function(e) {
+            if (e.target.classList.contains('staff-suggestion')) {
+                const staffId = e.target.getAttribute('data-id');
+                const staff = staffDatabase.find(s => s.id === staffId);
+                addStaff(staff);
+                staffInput.value = '';
+                staffSuggestions.style.display = 'none';
+            }
+        });
+
+        function addStaff(staff) {
+            if (!selectedStaff.some(s => s.id === staff.id)) {
+                selectedStaff.push(staff);
+                renderStaffTags();
+            }
+        }
+
+        function removeStaff(staffId) {
+            selectedStaff = selectedStaff.filter(s => s.id !== staffId);
+            renderStaffTags();
+        }
+
+        function renderStaffTags() {
+            const existingTags = staffContainer.querySelectorAll('.staff-tag');
+            existingTags.forEach(tag => tag.remove());
+
+            selectedStaff.forEach(staff => {
+                const tag = document.createElement('div');
+                tag.className = 'staff-tag';
+                tag.innerHTML = `
+                    ${staff.name} (${staff.role})
+                    <button type="button" class="remove-btn" onclick="removeStaff('${staff.id}')">&times;</button>
+                `;
+                staffContainer.insertBefore(tag, staffInput);
+            });
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!staffContainer.contains(e.target)) {
+                staffSuggestions.style.display = 'none';
+            }
+        });
+
+        // Form submission
+        document.getElementById('projectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('projectTitle').value,
+                description: document.getElementById('projectDescription').value,
+                type: document.getElementById('projectType').value,
+                deadline: document.getElementById('projectDeadline').value,
+                staff: selectedStaff
+            };
+
+            console.log('Project Data:', formData);
+            alert('Project created successfully!');
+            
+            // Reset form
+            this.reset();
+            selectedStaff = [];
+            renderStaffTags();
+        });
+
+        // Navigation functionality
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

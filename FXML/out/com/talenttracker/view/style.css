@@ -1,0 +1,36 @@
+/* General styling */
+.root {
+    -fx-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Style for the suggestion labels in the dropdown */
+.staff-suggestion {
+    -fx-padding: 10px;
+    -fx-cursor: hand;
+    -fx-background-color: transparent;
+}
+
+.staff-suggestion:hover {
+    -fx-background-color: #f0f0f0;
+}
+
+/* Style for the tags of selected staff */
+.staff-tag {
+    -fx-background-color: #3498db;
+    -fx-padding: 5px 10px;
+    -fx-border-radius: 15px;
+    -fx-background-radius: 15px;
+    -fx-text-fill: white;
+    -fx-font-size: 0.9em;
+}
+
+.staff-tag .label {
+    -fx-text-fill: white;
+}
+
+.staff-tag .button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+} 
