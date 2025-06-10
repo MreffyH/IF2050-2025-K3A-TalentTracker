@@ -20,9 +20,11 @@ import javafx.stage.FileChooser;
 
 import java.sql.ResultSet;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Random;
 
 import com.talenttracker.DatabaseManager;
@@ -37,6 +39,15 @@ import java.util.Map;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 
 public class LaporanKinerjaController {
 
@@ -62,6 +73,8 @@ public class LaporanKinerjaController {
     @FXML private TextField albumNameField;
     @FXML private TextField albumSoldField;
     @FXML private Button addAlbumButton;
+    @FXML private Button addAlbumSoldButton;
+    @FXML private TextField addAlbumSoldAmountField;
 
     // Social Media Form
     @FXML private ComboBox<String> socialMediaComboBox;
@@ -135,27 +148,10 @@ public class LaporanKinerjaController {
         socialMediaChart.getData().clear();
         socialMediaChart.setAnimated(true);
 
-        this.artistId = Main.getLoggedInUserId();
-        this.artistFullName = Main.getLoggedInUserFullName();
-
-        if (artistId != 0) {
-            loadAllDataFromDatabase();
-        }
-        
-        artistNameLabel.setText(this.artistFullName);
-
-        String profileImageName = this.artistFullName.replaceAll("\\s+", "") + "Profile.png";
-        try {
-            artistAvatarView.setImage(new Image("file:img/" + profileImageName));
-            downloadIcon.setImage(new Image("file:img/DownloadIcon.png"));
-        } catch (Exception e) {
-            System.err.println("Could not load image(s): " + e.getMessage());
-            artistAvatarView.setImage(new Image("file:img/DefaultArtist.png"));
-        }
-
         // Setup button actions
         reportButton.setOnAction(event -> handleReportButton());
         addAlbumButton.setOnAction(e -> handleAddAlbum());
+        addAlbumSoldButton.setOnAction(e -> handleAddAlbumSold());
         addSocialButton.setOnAction(e -> handleAddSocial());
         addVisitorsButton.setOnAction(e -> handleAddVisitors());
         addSalesButton.setOnAction(e -> handleAddSales());
@@ -163,6 +159,7 @@ public class LaporanKinerjaController {
         setupComboBox();
         initializeImageViews();
 
+        // If the view is loaded for an Artist, automatically set them.
         if ("Artist".equalsIgnoreCase(Main.getLoggedInUserRole())) {
             setArtist(Main.getLoggedInUserId(), Main.getLoggedInUserFullName());
         }
@@ -224,7 +221,7 @@ public class LaporanKinerjaController {
 
     private void loadTopAlbumChart() {
         topAlbumSeries.getData().clear();
-        String sql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ? ORDER BY sold DESC LIMIT 7";
+        String sql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ? ORDER BY sold DESC";
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, artistId);
@@ -337,43 +334,175 @@ public class LaporanKinerjaController {
         label.setText(String.format("%s%.0f%%", prefix, change));
     }
 
+    private List<String> getAllAlbumNamesForArtist(int artistId) {
+        List<String> albumNames = new ArrayList<>();
+        String sql = "SELECT DISTINCT albumName FROM TopAlbum WHERE idArtis = ? ORDER BY albumName";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                albumNames.add(rs.getString("albumName"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return albumNames;
+    }
+
     private void handleAddAlbum() {
         try {
             String name = albumNameField.getText();
-            int sold = Integer.parseInt(albumSoldField.getText());
-            if (name == null || name.trim().isEmpty()) return;
+            String soldText = albumSoldField.getText();
 
-            // Insert into TopAlbum
-            String topAlbumSql = "INSERT INTO TopAlbum (albumName, sold, date, idArtis) VALUES (?, ?, ?, ?)";
-            try (Connection conn = DatabaseManager.getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(topAlbumSql)) {
-                pstmt.setString(1, name);
-                pstmt.setInt(2, sold);
-                pstmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
-                pstmt.setInt(4, artistId);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (name == null || name.trim().isEmpty()) {
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Input Error");
+                alert.setHeaderText("Album Name is required");
+                alert.setContentText("Please enter a name for the new album.");
+                alert.showAndWait();
+                return;
+            }
+            if (soldText == null || soldText.trim().isEmpty()) {
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Input Error");
+                alert.setHeaderText("Album Sold is required");
+                alert.setContentText("Please enter the number of albums sold.");
+                alert.showAndWait();
+                return;
             }
 
-            // Update AlbumSold
-            String albumSoldSql = "INSERT INTO AlbumSold (idArtis, date, albumSoldToday) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE albumSoldToday = albumSoldToday + VALUES(albumSoldToday)";
-            try (Connection conn = DatabaseManager.getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
-                pstmt.setInt(1, artistId);
-                pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-                pstmt.setInt(3, sold);
-                pstmt.executeUpdate();
+            int sold = Integer.parseInt(soldText);
+
+            try (Connection conn = DatabaseManager.getConnection()) {
+                String selectSql = "SELECT albumName FROM TopAlbum WHERE albumName = ? AND idArtis = ?";
+                try (PreparedStatement selectPstmt = conn.prepareStatement(selectSql)) {
+                    selectPstmt.setString(1, name);
+                    selectPstmt.setInt(2, artistId);
+                    try (ResultSet rs = selectPstmt.executeQuery()) {
+                        if (rs.next()) {
+                            Alert alert = new Alert(AlertType.ERROR);
+                            alert.setTitle("Duplicate Album");
+                            alert.setHeaderText("Album already exists.");
+                            alert.setContentText("The album '" + name + "' already exists. To add more sales, use the 'Add Album Sold' function.");
+                            alert.showAndWait();
+                            return;
+                        }
+                    }
+                }
+
+                String insertSql = "INSERT INTO TopAlbum (albumName, sold, date, idArtis) VALUES (?, ?, ?, ?)";
+                try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
+                    insertPstmt.setString(1, name);
+                    insertPstmt.setInt(2, sold);
+                    insertPstmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
+                    insertPstmt.setInt(4, artistId);
+                    insertPstmt.executeUpdate();
+                }
+                
+                String albumSoldSql = "INSERT INTO AlbumSold (idArtis, date, albumSoldToday) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE albumSoldToday = albumSoldToday + VALUES(albumSoldToday)";
+                try (PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
+                     pstmt.setInt(1, artistId);
+                     pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+                     pstmt.setInt(3, sold);
+                     pstmt.executeUpdate();
+                }
+
             } catch (SQLException e) {
                 e.printStackTrace();
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Database Error");
+                alert.setHeaderText("Could not save new album.");
+                alert.setContentText("An unexpected database error occurred.");
+                alert.showAndWait();
             }
 
             albumNameField.clear();
             albumSoldField.clear();
             showSuccessMessage();
-            loadAllDataFromDatabase(); // Refresh UI
+            loadAllDataFromDatabase();
+
         } catch (NumberFormatException ex) {
-            System.err.println("Invalid number format for album sold.");
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Input Error");
+            alert.setHeaderText("Invalid number format");
+            alert.setContentText("Please enter a valid number for albums sold.");
+            alert.showAndWait();
+        }
+    }
+
+    private void handleAddAlbumSold() {
+        try {
+            if (addAlbumSoldAmountField.getText() == null || addAlbumSoldAmountField.getText().trim().isEmpty()) {
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Input Error");
+                alert.setHeaderText("Album Sold field is empty");
+                alert.setContentText("Please enter the number of albums sold to add.");
+                alert.showAndWait();
+                return;
+            }
+            int sold = Integer.parseInt(addAlbumSoldAmountField.getText());
+
+            List<String> albumNames = getAllAlbumNamesForArtist(artistId);
+            if (albumNames.isEmpty()) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("No Albums Found");
+                alert.setHeaderText("There are no albums to add sales to.");
+                alert.setContentText("Please create a new album first using the 'Add New Album' form.");
+                alert.showAndWait();
+                return;
+            }
+
+            ChoiceDialog<String> dialog = new ChoiceDialog<>(albumNames.get(0), albumNames);
+            dialog.setTitle("Select Album");
+            dialog.setHeaderText("Select an album to add sales to.");
+            dialog.setContentText("Choose album:");
+            
+            Optional<String> result = dialog.showAndWait();
+            String nameToUpdate;
+            if (result.isPresent()){
+                nameToUpdate = result.get();
+            } else {
+                return; // User cancelled
+            }
+
+            try (Connection conn = DatabaseManager.getConnection()) {
+                String updateSql = "UPDATE TopAlbum SET sold = sold + ?, date = ? WHERE albumName = ? AND idArtis = ?";
+                try (PreparedStatement updatePstmt = conn.prepareStatement(updateSql)) {
+                    updatePstmt.setInt(1, sold);
+                    updatePstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+                    updatePstmt.setString(3, nameToUpdate);
+                    updatePstmt.setInt(4, artistId);
+                    updatePstmt.executeUpdate();
+                }
+
+                String albumSoldSql = "INSERT INTO AlbumSold (idArtis, date, albumSoldToday) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE albumSoldToday = albumSoldToday + VALUES(albumSoldToday)";
+                try (PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
+                     pstmt.setInt(1, artistId);
+                     pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+                     pstmt.setInt(3, sold);
+                     pstmt.executeUpdate();
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Database Error");
+                alert.setHeaderText("Could not update album sales.");
+                alert.setContentText("An unexpected database error occurred.");
+                alert.showAndWait();
+            }
+
+            addAlbumSoldAmountField.clear();
+            showSuccessMessage();
+            loadAllDataFromDatabase();
+
+        } catch (NumberFormatException e) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Input Error");
+            alert.setHeaderText("Invalid number format");
+            alert.setContentText("Please enter a valid number for albums sold.");
+            alert.showAndWait();
         }
     }
 
@@ -383,7 +512,7 @@ public class LaporanKinerjaController {
             String platform = socialMediaComboBox.getValue();
             if (platform == null) return;
 
-            String sql = "INSERT INTO Popularity (idArtis, date, socialMedia, todayFollowers) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE todayFollowers = VALUES(todayFollowers)";
+            String sql = "INSERT INTO Popularity (idArtis, date, socialMedia, todayFollowers) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE todayFollowers = todayFollowers + VALUES(todayFollowers)";
             try (Connection conn = DatabaseManager.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, artistId);
@@ -489,83 +618,129 @@ public class LaporanKinerjaController {
     private void handleReportButton() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Report");
-        fileChooser.setInitialFileName(artistFullName.replaceAll("\\s+", "_") + "_Performance_Report.csv");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        fileChooser.setInitialFileName(artistFullName.replaceAll("\\s+", "_") + "_Performance_Report.pdf");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
         File file = fileChooser.showSaveDialog(reportButton.getScene().getWindow());
 
         if (file != null) {
-            try (FileWriter writer = new FileWriter(file)) {
-                writer.append("Category,Name,Value,Date\n");
+            try (PDDocument document = new PDDocument()) {
+                PDPage page = new PDPage();
+                document.addPage(page);
 
-                // Fetch and write Top Album data
-                String topAlbumSql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ?";
-                try (Connection conn = DatabaseManager.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(topAlbumSql)) {
-                    pstmt.setInt(1, artistId);
-                    ResultSet rs = pstmt.executeQuery();
-                    while (rs.next()) {
-                        writer.append("Top Album," + rs.getString("albumName") + "," + rs.getInt("sold") + ",N/A\n");
+                try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                    contentStream.beginText();
+                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 18);
+                    contentStream.newLineAtOffset(50, 750);
+                    contentStream.showText("Performance Report for " + artistFullName);
+                    contentStream.endText();
+
+                    contentStream.beginText();
+                    contentStream.setFont(PDType1Font.HELVETICA, 12);
+                    contentStream.newLineAtOffset(50, 700);
+
+                    // Fetch and write Top Album data
+                    contentStream.showText("Top Albums:");
+                    contentStream.newLineAtOffset(0, -15);
+                    String topAlbumSql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ?";
+                    try (Connection conn = DatabaseManager.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(topAlbumSql)) {
+                        pstmt.setInt(1, artistId);
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()) {
+                            String line = "  - " + rs.getString("albumName") + " (" + rs.getInt("sold") + " sold)";
+                            contentStream.showText(line);
+                            contentStream.newLineAtOffset(0, -15);
+                        }
                     }
+                    contentStream.newLineAtOffset(0, -15);
+
+                    // Fetch and write Popularity data
+                    contentStream.showText("Social Media Popularity:");
+                    contentStream.newLineAtOffset(0, -15);
+                    String popularitySql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ?";
+                    try (Connection conn = DatabaseManager.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(popularitySql)) {
+                        pstmt.setInt(1, artistId);
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()) {
+                            String line = "  - " + rs.getString("socialMedia") + ": " + rs.getInt("todayFollowers") + " followers on " + rs.getDate("date").toLocalDate();
+                            contentStream.showText(line);
+                            contentStream.newLineAtOffset(0, -15);
+                        }
+                    }
+                    contentStream.newLineAtOffset(0, -15);
+
+                    // Fetch and write Sales data
+                    contentStream.showText("Sales:");
+                    contentStream.newLineAtOffset(0, -15);
+                    String salesSql = "SELECT salesToday, date FROM Sales WHERE idArtis = ?";
+                    try (Connection conn = DatabaseManager.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(salesSql)) {
+                        pstmt.setInt(1, artistId);
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()) {
+                            String line = "  - " + rs.getDouble("salesToday") + " on " + rs.getDate("date").toLocalDate();
+                            contentStream.showText(line);
+                            contentStream.newLineAtOffset(0, -15);
+                        }
+                    }
+                    contentStream.newLineAtOffset(0, -15);
+
+                    // Fetch and write Album Sold data
+                    contentStream.showText("Albums Sold:");
+                    contentStream.newLineAtOffset(0, -15);
+                    String albumSoldSql = "SELECT albumSoldToday, date FROM AlbumSold WHERE idArtis = ?";
+                    try (Connection conn = DatabaseManager.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
+                        pstmt.setInt(1, artistId);
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()) {
+                            String line = "  - " + rs.getInt("albumSoldToday") + " on " + rs.getDate("date").toLocalDate();
+                            contentStream.showText(line);
+                            contentStream.newLineAtOffset(0, -15);
+                        }
+                    }
+                    contentStream.newLineAtOffset(0, -15);
+
+                    // Fetch and write Visitors data
+                    contentStream.showText("Visitors:");
+                    contentStream.newLineAtOffset(0, -15);
+                    String visitorsSql = "SELECT visitorsToday, date FROM Visitors WHERE idArtis = ?";
+                    try (Connection conn = DatabaseManager.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(visitorsSql)) {
+                        pstmt.setInt(1, artistId);
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()) {
+                            String line = "  - " + rs.getInt("visitorsToday") + " on " + rs.getDate("date").toLocalDate();
+                            contentStream.showText(line);
+                            contentStream.newLineAtOffset(0, -15);
+                        }
+                    }
+                    contentStream.newLineAtOffset(0, -15);
+
+                    // Fetch and write Fans Response data
+                    contentStream.showText("Fans Response:");
+                    contentStream.newLineAtOffset(0, -15);
+                    String fansResponseSql = "SELECT source, comment, category, timestamp FROM FansResponse WHERE idArtis = ?";
+                    try (Connection conn = DatabaseManager.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(fansResponseSql)) {
+                        pstmt.setInt(1, artistId);
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()) {
+                            String line = "  - " + rs.getString("source") + " (" + rs.getString("category") + "): " + rs.getString("comment") + " on " + rs.getTimestamp("timestamp").toLocalDateTime().toLocalDate();
+                            contentStream.showText(line);
+                            contentStream.newLineAtOffset(0, -15);
+                        }
+                    }
+
+                    contentStream.endText();
                 }
 
-                // Fetch and write Popularity data
-                String popularitySql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ?";
-                try (Connection conn = DatabaseManager.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(popularitySql)) {
-                    pstmt.setInt(1, artistId);
-                    ResultSet rs = pstmt.executeQuery();
-                    while (rs.next()) {
-                        writer.append("Popularity," + rs.getString("socialMedia") + "," + rs.getInt("todayFollowers") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
-                    }
-                }
-
-                // Fetch and write Fans Response data
-                String fansResponseSql = "SELECT source, comment, category, timestamp FROM FansResponse WHERE idArtis = ?";
-                try (Connection conn = DatabaseManager.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(fansResponseSql)) {
-                    pstmt.setInt(1, artistId);
-                    ResultSet rs = pstmt.executeQuery();
-                    while (rs.next()) {
-                        writer.append("Fans Response," + rs.getString("source") + " - " + rs.getString("category") + "," + rs.getString("comment").replace(",", ";") + "," + rs.getTimestamp("timestamp").toLocalDateTime().toLocalDate().toString() + "\n");
-                    }
-                }
-
-                // Fetch and write Sales data
-                String salesSql = "SELECT salesToday, date FROM Sales WHERE idArtis = ?";
-                try (Connection conn = DatabaseManager.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(salesSql)) {
-                    pstmt.setInt(1, artistId);
-                    ResultSet rs = pstmt.executeQuery();
-                    while (rs.next()) {
-                        writer.append("Sales," + "Daily Sale" + "," + rs.getDouble("salesToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
-                    }
-                }
-
-                // Fetch and write Album Sold data
-                String albumSoldSql = "SELECT albumSoldToday, date FROM AlbumSold WHERE idArtis = ?";
-                try (Connection conn = DatabaseManager.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
-                    pstmt.setInt(1, artistId);
-                    ResultSet rs = pstmt.executeQuery();
-                    while (rs.next()) {
-                        writer.append("Album Sold," + "Daily Album Sold" + "," + rs.getInt("albumSoldToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
-                    }
-                }
-
-                // Fetch and write Visitors data
-                String visitorsSql = "SELECT visitorsToday, date FROM Visitors WHERE idArtis = ?";
-                try (Connection conn = DatabaseManager.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(visitorsSql)) {
-                    pstmt.setInt(1, artistId);
-                    ResultSet rs = pstmt.executeQuery();
-                    while (rs.next()) {
-                        writer.append("Visitors," + "Daily Visitors" + "," + rs.getInt("visitorsToday") + "," + rs.getDate("date").toLocalDate().toString() + "\n");
-                    }
-                }
-
+                document.save(file);
             } catch (IOException | SQLException e) {
                 e.printStackTrace();
             }
         }
     }
 }
+

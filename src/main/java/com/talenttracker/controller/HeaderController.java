@@ -12,6 +12,7 @@ import javafx.scene.shape.Circle;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import javafx.stage.Stage;
 
 public class HeaderController {
     @FXML

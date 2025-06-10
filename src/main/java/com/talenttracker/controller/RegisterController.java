@@ -1,5 +1,6 @@
-package com.talenttracker;
+package com.talenttracker.controller;
 
+import com.talenttracker.DatabaseManager;
 import java.io.IOException;
 
 import javafx.fxml.FXML;
@@ -102,26 +103,32 @@ public class RegisterController {
         boolean success = DatabaseManager.addUser(fullName, email, password, role);
 
         if (success) {
-            showAlert(AlertType.INFORMATION, "Registration Successful!", "You can now log in with your new account.");
-            openLoginScreen();
+            showAlert(AlertType.INFORMATION, "Registration Successful!", "You can now log in with your new account.")
+                .ifPresent(response -> {
+                    try {
+                        openLoginScreen();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
         } else {
             showAlert(AlertType.ERROR, "Registration Failed", "Could not create account. The email might already be in use.");
         }
     }
 
-    private void showAlert(AlertType alertType, String title, String message) {
+    private java.util.Optional<javafx.scene.control.ButtonType> showAlert(AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.showAndWait();
+        return alert.showAndWait();
     }
 
     @FXML
     private void openLoginScreen() throws IOException {
         Stage stage = (Stage) loginLink.getScene().getWindow();
-        Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));
-        Scene scene = new Scene(root);
+        Parent root = FXMLLoader.load(getClass().getResource("/view/login.fxml"));
+        Scene scene = new Scene(root, 1920, 1080);
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
         stage.setScene(scene);
         stage.show();

@@ -109,7 +109,7 @@
                                  <children>
                                     <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="Add New Album" />
                                     <TextField fx:id="albumNameField" promptText="Album Name" style="-fx-background-radius: 25; -fx-padding: 10;" />
-                                    <TextField fx:id="albumSoldField" promptText="Sold" style="-fx-background-radius: 25; -fx-padding: 10;" />
+                                    <TextField fx:id="albumSoldField" promptText="Amount Sold" style="-fx-background-radius: 25; -fx-padding: 10;" />
                                     <Pane VBox.vgrow="ALWAYS" />
                                     <Button fx:id="addAlbumButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-background-radius: 25; -fx-font-weight: bold;" text="Add" />
                                  </children>
@@ -179,9 +179,9 @@
                               <VBox spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20;" VBox.vgrow="ALWAYS">
                                  <children>
                                     <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e2a4a;" text="Add Album Sold" />
-                                    <TextField fx:id="albumSoldCountField" promptText="Amount Sold" style="-fx-background-radius: 25; -fx-padding: 10;" />
+                                    <TextField fx:id="addAlbumSoldAmountField" promptText="Amount Sold" style="-fx-background-radius: 25; -fx-padding: 10;" />
                                     <Pane VBox.vgrow="ALWAYS" />
-                                    <Button fx:id="addAlbumSoldCountButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-background-radius: 25; -fx-font-weight: bold;" text="Add" />
+                                    <Button fx:id="addAlbumSoldButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-background-radius: 25; -fx-font-weight: bold;" text="Add" />
                                  </children>
                               </VBox>
                            </children>

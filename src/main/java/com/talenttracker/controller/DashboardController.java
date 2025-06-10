@@ -299,4 +299,3 @@ public class DashboardController {
         monthlyTotalChart.setStartAngle(90);
     }
 }
-

@@ -1,7 +1,7 @@
-package com.talenttracker;
+package com.talenttracker.controller;
 
-import java.io.IOException;
-
+import com.talenttracker.Main;
+import com.talenttracker.DatabaseManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,6 +13,8 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.scene.layout.BorderPane;
+import java.io.IOException;
 
 public class LoginController {
 
@@ -77,21 +79,37 @@ public class LoginController {
 
         if (userInfo != null) {
             // Successful login
-            String userRole = userInfo[0];
-            String fullName = userInfo[1];
+            String userId = userInfo[0];
+            String userRole = userInfo[1];
+            String fullName = userInfo[2];
+            
+            Main.setLoggedInUser(Integer.parseInt(userId), userRole, fullName);
+
             showAlert(Alert.AlertType.INFORMATION, "Login Successful", "Welcome, " + fullName + "!");
-            // Here you would typically navigate to another screen based on the role
-            // For now, we'll just show a success message.
-            // Example: openDashboard(userRole);
+
             try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/MainLayout.fxml"));
+                BorderPane mainLayout = loader.load();
+
+                // Load the appropriate dashboard view
+                String viewPath = "Artist".equalsIgnoreCase(userRole) ? "/view/DashboardViewArtist.fxml" : "/view/DashboardView.fxml";
+                FXMLLoader contentLoader = new FXMLLoader(getClass().getResource(viewPath));
+                mainLayout.setCenter(contentLoader.load());
+
+                if ("Artist".equalsIgnoreCase(userRole)) {
+                    DashboardArtistController artistController = contentLoader.getController();
+                    artistController.setArtistId(Main.getLoggedInUserId());
+                }
+
+                // Close the login stage
                 Stage stage = (Stage) loginButton.getScene().getWindow();
-                Parent root = FXMLLoader.load(getClass().getResource("dashboard.fxml"));
-                Scene scene = new Scene(root);
-                scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+                Scene scene = new Scene(mainLayout, 1920, 1080);
                 stage.setScene(scene);
                 stage.show();
+
             } catch (IOException e) {
                 e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Navigation Error", "Could not load the dashboard.");
             }
         } else {
             // Failed login
@@ -110,8 +128,8 @@ public class LoginController {
     @FXML
     private void openRegisterScreen() throws IOException {
         Stage stage = (Stage) registerLink.getScene().getWindow();
-        Parent root = FXMLLoader.load(getClass().getResource("register.fxml"));
-        Scene scene = new Scene(root);
+        Parent root = FXMLLoader.load(getClass().getResource("/view/register.fxml"));
+        Scene scene = new Scene(root, 1920, 1080);
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
         stage.setScene(scene);
         stage.show();

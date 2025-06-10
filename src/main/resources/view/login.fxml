@@ -13,7 +13,7 @@
 <?import javafx.scene.text.Font?>
 
 
-<Pane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #FFB7CA;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.LoginController">
+<Pane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #FFB7CA;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.LoginController">
    <children>
       <Pane fx:id="loginPane" layoutX="${(rootPane.width - loginPane.width) / 2}" layoutY="${(rootPane.height - loginPane.height) / 2}" prefHeight="635.0" prefWidth="646.0" style="-fx-background-color: white; -fx-background-radius: 24;">
          <effect>
