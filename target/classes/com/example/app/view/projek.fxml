@@ -69,7 +69,7 @@
                         <Font name="System Bold" size="36.0" />
                      </font>
                   </Label>
-                  <Button onAction="#navigateToAddProject" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" text="+ New Project" />
+                  <Button fx:id="addProjectButton" onAction="#navigateToAddProject" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" text="+ New Project" />
                </children>
             </HBox>
             <TilePane fx:id="projectsTilePane" hgap="20.0" prefColumns="4" vgap="20.0" />

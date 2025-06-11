@@ -1,8 +1,11 @@
+com\example\app\dao\ProjectArtistDAO.class
 com\example\app\dao\ProjectDAOImpl.class
 com\example\app\controller\MainController.class
 com\example\app\model\Project.class
+com\example\app\dao\ProjectArtistDAOImpl.class
 com\example\app\Main.class
 com\example\app\model\User.class
+com\example\app\controller\LoginController.class
 com\example\app\dao\ProjectDAO.class
 com\example\app\util\Database.class
 com\example\app\dao\UserDAOImpl.class

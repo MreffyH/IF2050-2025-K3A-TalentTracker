@@ -3,15 +3,20 @@ package com.example.app.controller;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.example.app.dao.ProjectArtistDAO;
+import com.example.app.dao.ProjectArtistDAOImpl;
 import com.example.app.dao.ProjectDAO;
 import com.example.app.dao.ProjectDAOImpl;
 import com.example.app.model.Project;
+import com.example.app.model.User;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
@@ -22,15 +27,35 @@ public class MainController {
 
     @FXML
     private TilePane projectsTilePane;
+    @FXML
+    private Button addProjectButton;
 
     private ProjectDAO projectDAO;
+    private ProjectArtistDAO projectArtistDAO;
+    private User loggedInUser;
 
     public MainController() {
         this.projectDAO = new ProjectDAOImpl();
+        this.projectArtistDAO = new ProjectArtistDAOImpl();
     }
 
     @FXML
     public void initialize() {
+        // This is called by FXML loader, but role is not yet set.
+        // The real initialization happens in initializeWithRole.
+    }
+
+    public void initializeWithUser(User user) {
+        this.loggedInUser = user;
+        String role = user.getRole();
+
+        if ("CEO".equals(role)) {
+            addProjectButton.setDisable(false);
+            addProjectButton.setVisible(true);
+        } else {
+            addProjectButton.setDisable(true);
+            addProjectButton.setVisible(false);
+        }
         refreshProjectsGrid();
     }
 
@@ -38,6 +63,9 @@ public class MainController {
     protected void navigateToAddProject() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/app/view/add_project.fxml"));
         Parent root = loader.load();
+
+        AddProjectController addProjectController = loader.getController();
+        addProjectController.setLoggedInCEO(this.loggedInUser);
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -68,11 +96,17 @@ public class MainController {
 
             Label type = new Label("Type: " + project.getType());
             type.getStyleClass().add("project-status");
-
+            
             Label staff = new Label("Staff ID: " + project.getIdStaff() + " | CEO ID: " + project.getIdCEO());
             staff.getStyleClass().add("project-staff");
 
-            projectCard.getChildren().addAll(title, description, type, staff);
+            // Get and display artists
+            List<User> artists = projectArtistDAO.getArtistsForProject(project.getIdProject());
+            String artistNames = artists.stream().map(User::getFullName).collect(Collectors.joining(", "));
+            Label artistsLabel = new Label("Artists: " + (artistNames.isEmpty() ? "None" : artistNames));
+            artistsLabel.getStyleClass().add("project-artists");
+
+            projectCard.getChildren().addAll(title, description, type, staff, artistsLabel);
             
             if (project.getStartDate() != null) {
                 Label date = new Label("Dates: " + project.getStartDate().format(formatter) + " - " + project.getEndDate().format(formatter));

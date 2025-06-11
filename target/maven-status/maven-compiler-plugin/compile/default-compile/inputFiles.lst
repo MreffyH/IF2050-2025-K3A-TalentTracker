@@ -1,10 +1,13 @@
-C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\Main.java
 C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\util\Database.java
 C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\model\Project.java
+C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\UserDAO.java
+C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\controller\LoginController.java
+C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\ProjectDAOImpl.java
+C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\ProjectArtistDAOImpl.java
+C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\ProjectArtistDAO.java
+C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\Main.java
 C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\model\User.java
 C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\controller\MainController.java
-C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\UserDAO.java
 C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\ProjectDAO.java
 C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\UserDAOImpl.java
 C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\controller\AddProjectController.java
-C:\Users\ASUS\Documents\GitHub\IF2050-2025-K3A-TalentTracker\src\main\java\com\example\app\dao\ProjectDAOImpl.java

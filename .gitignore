@@ -1,0 +1,3 @@
+# Login page files
+src/main/java/com/talenttracker/controller/LoginController.java
+src/main/resources/com/talenttracker/Login.fxml 
