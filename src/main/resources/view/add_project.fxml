@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.FlowPane?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.app.controller.AddProjectController"
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.AddProjectController"
       style="-fx-background-color: #FFB7CA; -fx-padding: 20;" spacing="15" alignment="TOP_CENTER">
 
     <Label text="Add New Project" styleClass="header-title"/>

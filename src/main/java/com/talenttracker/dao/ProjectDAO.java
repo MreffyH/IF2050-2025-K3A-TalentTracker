@@ -1,23 +1,17 @@
-package com.example.app.dao;
+package com.talenttracker.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import com.talenttracker.model.Project;
+import com.talenttracker.util.DatabaseUtil;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.app.model.Project;
-import com.example.app.util.Database;
+public class ProjectDAO {
 
-public class ProjectDAOImpl implements ProjectDAO {
-
-    @Override
-    public boolean addProject(Project project) {
+    public boolean addProject(Project project) throws SQLException {
         String sql = "INSERT INTO Project(idProject, projectName, type, description, idCEO, idStaff, startDate, endDate) VALUES(?,?,?,?,?,?,?,?)";
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, project.getIdProject());
             pstmt.setString(2, project.getProjectName());
@@ -29,23 +23,13 @@ public class ProjectDAOImpl implements ProjectDAO {
             pstmt.setTimestamp(8, Timestamp.valueOf(project.getEndDate()));
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
-    @Override
-    public Project getProjectById(int projectId) {
-        // Implementation can be added later
-        return null;
-    }
-
-    @Override
-    public List<Project> getAllProjects() {
+    public List<Project> getAllProjects() throws SQLException {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM Project";
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -61,24 +45,24 @@ public class ProjectDAOImpl implements ProjectDAO {
                 project.setEndDate(rs.getTimestamp("endDate").toLocalDateTime());
                 projects.add(project);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return projects;
     }
 
-    @Override
-    public int getNextProjectId() {
+    public int getNextProjectId() throws SQLException {
         String sql = "SELECT MAX(idProject) FROM Project";
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
             if (rs.next()) {
                 return rs.getInt(1) + 1;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return 1; // Default to 1 if table is empty or error occurs
+        return 1; // Default to 1 if table is empty
     }
-}
+
+    public Project getProjectById(int projectId) throws SQLException {
+        // Implementation can be added later
+        return null;
+    }
+} 

@@ -1,4 +1,4 @@
-# Dashboard
+# Talent Tracker
 
 How to Run:
 mvn clean javafx:run

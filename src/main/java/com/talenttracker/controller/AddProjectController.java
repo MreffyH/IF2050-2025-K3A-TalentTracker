@@ -1,4 +1,4 @@
-package com.example.app.controller;
+package com.talenttracker.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -7,14 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.example.app.dao.ProjectArtistDAO;
-import com.example.app.dao.ProjectArtistDAOImpl;
-import com.example.app.dao.ProjectDAO;
-import com.example.app.dao.ProjectDAOImpl;
-import com.example.app.dao.UserDAO;
-import com.example.app.dao.UserDAOImpl;
-import com.example.app.model.Project;
-import com.example.app.model.User;
+import com.talenttracker.dao.UserDAO;
+import com.talenttracker.model.User;
+import com.talenttracker.dao.ProjectArtistDAO;
+import com.talenttracker.dao.ProjectDAO;
+import com.talenttracker.model.Project;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,6 +26,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
+
+import java.sql.SQLException;
 
 public class AddProjectController {
 
@@ -52,9 +52,9 @@ public class AddProjectController {
     private User loggedInCEO;
 
     public AddProjectController() {
-        this.projectDAO = new ProjectDAOImpl();
-        this.userDAO = new UserDAOImpl();
-        this.projectArtistDAO = new ProjectArtistDAOImpl();
+        this.projectDAO = new ProjectDAO();
+        this.userDAO = new UserDAO();
+        this.projectArtistDAO = new ProjectArtistDAO();
     }
 
     @FXML
@@ -62,14 +62,33 @@ public class AddProjectController {
         projectTypeComboBox.getItems().addAll("Collab", "Live", "Comeback");
         projectTypeComboBox.setValue("Collab");
 
-        staffComboBox.setItems(FXCollections.observableArrayList(userDAO.getUsersByRole("Staff")));
-        
-        availableArtists.setAll(userDAO.getUsersByRole("Artist"));
-        artistComboBox.setItems(availableArtists);
+        StringConverter<User> userConverter = new StringConverter<>() {
+            @Override
+            public String toString(User user) {
+                return user == null ? "" : user.getFullName();
+            }
 
-        int nextId = projectDAO.getNextProjectId();
-        nextIdLabel.setText("Suggested ID: " + nextId);
-        projectIdField.setText(String.valueOf(nextId));
+            @Override
+            public User fromString(String string) {
+                return null; // Not needed for selection
+            }
+        };
+
+        staffComboBox.setConverter(userConverter);
+        artistComboBox.setConverter(userConverter);
+
+        try {
+            staffComboBox.setItems(FXCollections.observableArrayList(userDAO.getUsersByRole("Staff")));
+            availableArtists.setAll(userDAO.getUsersByRole("Artist"));
+            artistComboBox.setItems(availableArtists);
+
+            int nextId = projectDAO.getNextProjectId();
+            nextIdLabel.setText("Suggested ID: " + nextId);
+            projectIdField.setText(String.valueOf(nextId));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to load initial data.");
+        }
     }
 
     public void setLoggedInCEO(User ceo) {
@@ -119,8 +138,8 @@ public class AddProjectController {
             newProject.setProjectName(projectNameField.getText());
             newProject.setDescription(projectDescriptionArea.getText());
             newProject.setType(projectTypeComboBox.getValue());
-            newProject.setIdCEO(loggedInCEO.getIdUser());
-            newProject.setIdStaff(selectedStaff.getIdUser());
+            newProject.setIdCEO(loggedInCEO.getId());
+            newProject.setIdStaff(selectedStaff.getId());
             
             LocalDate startDate = startDatePicker.getValue();
             LocalDate endDate = endDatePicker.getValue();
@@ -137,7 +156,7 @@ public class AddProjectController {
 
             if (projectSuccess) {
                 List<Integer> artistIds = assignedArtists.stream()
-                                                         .map(User::getIdUser)
+                                                         .map(User::getId)
                                                          .collect(Collectors.toList());
                 projectArtistDAO.addArtistsToProject(newProject.getIdProject(), artistIds);
                 
@@ -148,6 +167,9 @@ public class AddProjectController {
             }
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Form Error!", "Please enter a valid number for the Project ID.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "A database error occurred while adding the project.");
         }
     }
 

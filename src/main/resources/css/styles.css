@@ -468,4 +468,133 @@
 .pagination .pagination-control .page-number:selected {
     -fx-background-color: #1e2a4a;
     -fx-text-fill: white;
+}
+
+/* General Styles */
+.root {
+    -fx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -fx-background-color: #FFB7CA;
+}
+
+/* Header Styles */
+.header {
+    -fx-padding: 10px 20px;
+    -fx-alignment: center-left;
+}
+
+.title {
+    -fx-font-size: 2.5em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}
+
+.add-project-btn {
+    -fx-background-color: #22c55e;
+    -fx-text-fill: white;
+    -fx-padding: 12px 24px;
+    -fx-background-radius: 9999px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.add-project-btn:hover {
+    -fx-background-color: #16a34a;
+}
+
+/* Projects Grid */
+.projects-grid {
+    -fx-padding: 24px;
+    -fx-background-color: transparent;
+}
+
+/* Project Card Styles */
+.project-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16px;
+    -fx-padding: 24px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 1, 2);
+    -fx-spacing: 12px;
+}
+
+.project-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 10, 0, 2, 4);
+}
+
+.project-title {
+    -fx-font-size: 1.125em;
+    -fx-font-weight: 600;
+    -fx-text-fill: #374151;
+}
+
+.project-description {
+    -fx-font-size: 0.875em;
+    -fx-text-fill: #6b7280;
+    -fx-wrap-text: true;
+}
+
+.project-deadline {
+    -fx-font-size: 0.875em;
+    -fx-text-fill: #6b7280;
+}
+
+/* Add Project Form Styles */
+.form-container {
+    -fx-padding: 24px;
+    -fx-background-color: #f9fafb; /* A light grey background for the form */
+}
+
+.form-input, .form-textarea, .form-datepicker {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 12px;
+    -fx-font-size: 1em;
+}
+
+.form-input:focused, .form-textarea:focused, .form-datepicker:focused {
+    -fx-border-color: #22c55e;
+    -fx-effect: dropshadow(three-pass-box, rgba(34, 197, 94, 0.3), 5, 0, 0, 0);
+}
+
+.form-button {
+    -fx-background-color: #22c55e;
+    -fx-text-fill: white;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 8px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.form-button:hover {
+    -fx-background-color: #16a34a;
+}
+
+/* Staff Selection Styles */
+.staff-tag {
+    -fx-background-color: #e0e0e0;
+    -fx-padding: 3px 6px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-alignment: center;
+    -fx-spacing: 5;
+}
+
+.staff-tag .button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-font-size: 1.2em;
+    -fx-cursor: hand;
+}
+
+.staff-suggestion {
+    -fx-padding: 8px;
+    -fx-background-color: white;
+    -fx-cursor: hand;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #f0f0f0;
+}
+
+.staff-suggestion:hover {
+    -fx-background-color: #f0f0f0;
 } 

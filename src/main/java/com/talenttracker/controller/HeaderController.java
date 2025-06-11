@@ -96,7 +96,16 @@ public class HeaderController {
     
     @FXML
     public void navigateToProject() {
-        
+        try {
+            User currentUser = userDAO.getUserById(Main.getLoggedInUserId());
+            BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/projek.fxml"));
+            mainContainer.setCenter(loader.load());
+            ProjectController controller = loader.getController();
+            controller.initializeWithUser(currentUser);
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML
