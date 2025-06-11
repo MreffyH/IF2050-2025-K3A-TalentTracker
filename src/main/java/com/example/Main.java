@@ -13,7 +13,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         // Load the FXML file
-        Parent root = FXMLLoader.load(getClass().getResource("/SelectionView.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/LoginView.fxml"));
         Scene scene = new Scene(root, 1920, 1080);
         primaryStage.setTitle("Talent Tracker");
         primaryStage.setMaximized(true);

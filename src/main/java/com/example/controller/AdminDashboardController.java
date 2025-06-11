@@ -1,12 +1,18 @@
 package com.example.controller;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
+import com.example.dao.AttendanceDAO;
+import com.example.dao.UserDAO;
+import com.example.model.Attendance;
+import com.example.model.User;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -38,9 +44,11 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private GridPane tableHeader;
 
-    private List<StaffMember> allStaffMembers = new ArrayList<>();
-    private List<StaffMember> filteredStaffMembers = new ArrayList<>();
-    private final int ITEMS_PER_PAGE = 5;
+    private UserDAO userDAO = new UserDAO();
+    private AttendanceDAO attendanceDAO = new AttendanceDAO();
+    private List<User> allStaffMembers = new ArrayList<>();
+    private List<User> filteredStaffMembers = new ArrayList<>();
+    private final int ITEMS_PER_PAGE = 8;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -51,42 +59,38 @@ public class AdminDashboardController implements Initializable {
         loadStaffData();
         
         // Initialize pagination
-        tablePagination.setPageCount((int) Math.ceil((double) allStaffMembers.size() / ITEMS_PER_PAGE));
-        tablePagination.currentPageIndexProperty().addListener((obs, oldIndex, newIndex) -> {
-            displayStaffPage(newIndex.intValue());
-        });
+        setupPagination();
         
         // Initialize search functionality
-        searchField.textProperty().addListener((obs, oldText, newText) -> {
-            filterStaffMembers(newText);
-        });
+        setupSearch();
         
         // Display initial page
         displayStaffPage(0);
     }
 
     private void loadStaffData() {
-        // Sample data - in a real app, this would come from a database
-        allStaffMembers.add(new StaffMember("Moh Aqila", 80, 20, "30 Hr 40 Mins 56 Secs", 9000000));
-        allStaffMembers.add(new StaffMember("Anwar Fawaz", 90, 10, "30 Hr 40 Mins 56 Secs", 10000000));
-        allStaffMembers.add(new StaffMember("Reffy Aja", 76, 24, "30 Hr 40 Mins 56 Secs", 8000000));
-        allStaffMembers.add(new StaffMember("Afnan Alif", 89, 11, "30 Hr 40 Mins 56 Secs", 10000000));
-        allStaffMembers.add(new StaffMember("Kak Nana", 12, 88, "30 Hr 40 Mins 56 Secs", 1000000));
-        
-        // Add more sample data to demonstrate pagination
-        for (int i = 0; i < 95; i++) {
-            int attendPercent = (int) (Math.random() * 100);
-            allStaffMembers.add(new StaffMember(
-                "Staff " + (i + 6),
-                attendPercent,
-                100 - attendPercent,
-                "30 Hr 40 Mins 56 Secs",
-                (long) (Math.random() * 10000000) + 1000000
-            ));
+        try {
+            allStaffMembers = userDAO.getAllStaff();
+            filteredStaffMembers.clear();
+            filteredStaffMembers.addAll(allStaffMembers);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Handle error, maybe show a dialog
         }
-        
-        // Initialize filtered list
-        filteredStaffMembers.addAll(allStaffMembers);
+    }
+
+    private void setupPagination() {
+        int pageCount = (int) Math.ceil((double) filteredStaffMembers.size() / ITEMS_PER_PAGE);
+        tablePagination.setPageCount(Math.max(1, pageCount));
+        tablePagination.currentPageIndexProperty().addListener((obs, oldIndex, newIndex) -> {
+            displayStaffPage(newIndex.intValue());
+        });
+    }
+
+    private void setupSearch() {
+        searchField.textProperty().addListener((obs, oldText, newText) -> {
+            filterStaffMembers(newText);
+        });
     }
 
     private void filterStaffMembers(String searchText) {
@@ -95,12 +99,10 @@ public class AdminDashboardController implements Initializable {
         } else {
             String lowerCaseSearch = searchText.toLowerCase();
             filteredStaffMembers = allStaffMembers.stream()
-                .filter(staff -> staff.getName().toLowerCase().contains(lowerCaseSearch))
+                .filter(staff -> staff.getFullName().toLowerCase().contains(lowerCaseSearch))
                 .collect(Collectors.toList());
         }
-        
-        // Update pagination
-        tablePagination.setPageCount(Math.max(1, (int) Math.ceil((double) filteredStaffMembers.size() / ITEMS_PER_PAGE)));
+        setupPagination();
         displayStaffPage(0);
     }
 
@@ -111,12 +113,12 @@ public class AdminDashboardController implements Initializable {
         int endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredStaffMembers.size());
         
         for (int i = startIndex; i < endIndex; i++) {
-            StaffMember staff = filteredStaffMembers.get(i);
+            User staff = filteredStaffMembers.get(i);
             staffTableContent.getChildren().add(createStaffRow(staff));
         }
     }
 
-    private GridPane createStaffRow(StaffMember staff) {
+    private GridPane createStaffRow(User staff) {
         GridPane row = new GridPane();
         row.getStyleClass().add("staff-row");
         
@@ -135,35 +137,46 @@ public class AdminDashboardController implements Initializable {
         row.getColumnConstraints().addAll(col1, col2, col3, col4, col5);
         
         // Name column - left aligned
-        Label nameLabel = new Label(staff.getName());
+        Label nameLabel = new Label(staff.getFullName());
         nameLabel.getStyleClass().add("staff-name");
         GridPane.setHalignment(nameLabel, javafx.geometry.HPos.LEFT);
         row.add(nameLabel, 0, 0);
         
-        // Attend column - left aligned to match header
-        HBox attendBox = new HBox(10);
-        attendBox.setAlignment(Pos.CENTER_LEFT);
-        Circle attendDot = new Circle(8);
-        attendDot.getStyleClass().add("attend-dot");
-        Label attendLabel = new Label(staff.getAttendPercent() + "%");
-        attendLabel.getStyleClass().add("percentage-label");
-        attendBox.getChildren().addAll(attendDot, attendLabel);
+        // Calculate attendance percentages and working hours
+        int onTimePercent = 0;
+        int latePercent = 0;
+        long totalWorkingSeconds = 0;
+        try {
+            List<Attendance> attendanceRecords = attendanceDAO.getAttendanceByUserId(staff.getId());
+            if (!attendanceRecords.isEmpty()) {
+                // More efficient calculation from the fetched list
+                long onTimeCount = attendanceRecords.stream().filter(Attendance::isOnTime).count();
+                onTimePercent = (int) ((onTimeCount * 100.0) / attendanceRecords.size());
+                latePercent = 100 - onTimePercent;
+                
+                // Sum up total working hours
+                totalWorkingSeconds = attendanceRecords.stream()
+                        .mapToLong(Attendance::getWorkingHours)
+                        .sum();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        // Attend column
+        HBox attendBox = createPercentageBox(onTimePercent + "%", "attend-dot");
         GridPane.setHalignment(attendBox, javafx.geometry.HPos.LEFT);
         row.add(attendBox, 1, 0);
         
-        // Absent column - left aligned to match header
-        HBox absentBox = new HBox(10);
-        absentBox.setAlignment(Pos.CENTER_LEFT);
-        Circle absentDot = new Circle(8);
-        absentDot.getStyleClass().add("absent-dot");
-        Label absentLabel = new Label(staff.getAbsentPercent() + "%");
-        absentLabel.getStyleClass().add("percentage-label");
-        absentBox.getChildren().addAll(absentDot, absentLabel);
+        // Absent/Late column
+        HBox absentBox = createPercentageBox(latePercent + "%", "absent-dot");
         GridPane.setHalignment(absentBox, javafx.geometry.HPos.LEFT);
         row.add(absentBox, 2, 0);
         
-        // Working hours column - center aligned to match header
-        Label hoursLabel = new Label(staff.getWorkingHours());
+        // Working hours
+        long hours = totalWorkingSeconds / 3600;
+        long minutes = (totalWorkingSeconds % 3600) / 60;
+        Label hoursLabel = new Label(String.format("%d Hr %02d Min", hours, minutes));
         hoursLabel.getStyleClass().add("working-hours");
         GridPane.setHalignment(hoursLabel, javafx.geometry.HPos.CENTER);
         row.add(hoursLabel, 3, 0);
@@ -177,45 +190,19 @@ public class AdminDashboardController implements Initializable {
         return row;
     }
 
-    private String formatCurrency(long amount) {
-        NumberFormat currencyFormat = NumberFormat.getNumberInstance(new Locale("id", "ID"));
-        return "IDR " + currencyFormat.format(amount).replace(",", ".");
+    private HBox createPercentageBox(String text, String styleClass) {
+        HBox box = new HBox(10);
+        box.setAlignment(Pos.CENTER_LEFT);
+        Circle dot = new Circle(8);
+        dot.getStyleClass().add(styleClass);
+        Label label = new Label(text);
+        label.getStyleClass().add("percentage-label");
+        box.getChildren().addAll(dot, label);
+        return box;
     }
 
-    // Staff Member model class
-    private static class StaffMember {
-        private String name;
-        private int attendPercent;
-        private int absentPercent;
-        private String workingHours;
-        private long salary;
-
-        public StaffMember(String name, int attendPercent, int absentPercent, String workingHours, long salary) {
-            this.name = name;
-            this.attendPercent = attendPercent;
-            this.absentPercent = absentPercent;
-            this.workingHours = workingHours;
-            this.salary = salary;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public int getAttendPercent() {
-            return attendPercent;
-        }
-
-        public int getAbsentPercent() {
-            return absentPercent;
-        }
-
-        public String getWorkingHours() {
-            return workingHours;
-        }
-
-        public long getSalary() {
-            return salary;
-        }
+    private String formatCurrency(long amount) {
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+        return "IDR " + currencyFormat.format(amount);
     }
 }

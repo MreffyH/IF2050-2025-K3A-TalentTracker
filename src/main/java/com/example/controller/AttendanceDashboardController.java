@@ -1,22 +1,34 @@
 package com.example.controller;
 
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.sql.Date;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
+
+import com.example.dao.AttendanceDAO;
+import com.example.dao.UserDAO;
+import com.example.model.Attendance;
+import com.example.model.User;
+import com.example.util.SessionManager;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -24,390 +36,431 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
+
 public class AttendanceDashboardController implements Initializable {
 
-    @FXML
-    private VBox attendanceRecordsVBox;
-
-    @FXML
-    private Canvas analogClockCanvas;
-
-    @FXML
-    private Canvas onTimeChartCanvas;
-
-    @FXML
-    private Canvas lateChartCanvas;
-
-    @FXML
-    private Label digitalTimeLabel;
-
-    @FXML
-    private Label workingTimeLabel;
-
-    @FXML
-    private Label salaryAmountLabel;
-
-    @FXML
-    private Button checkButton;
+    // FXML Fields
+    @FXML private VBox attendanceRecordsVBox;
+    @FXML private Label digitalTimeLabel;
+    @FXML private Label salaryAmountLabel;
+    @FXML private Button checkButton;
+    @FXML private Label onTimePercentageLabel;
+    @FXML private Label latePercentageLabel;
+    @FXML private Label userNameLabel;
+    @FXML private Label userRoleLabel;
+    @FXML private Canvas analogClockCanvas;
+    @FXML private Label workingTimeLabel;
+    @FXML private Button viewSalaryButton;
+    @FXML private LineChart<String, Number> onTimeLineChart;
+    @FXML private LineChart<String, Number> lateLineChart;
     
-    @FXML
-    private Button viewSalaryButton;
+    // FIXED: Added missing axis references
+    @FXML private CategoryAxis onTimeXAxis;
+    @FXML private CategoryAxis lateXAxis;
+    @FXML private NumberAxis onTimeYAxis;
+    @FXML private NumberAxis lateYAxis;
 
-    @FXML
-    private Circle profileCircle;
+    // DAOs
+    private final AttendanceDAO attendanceDAO = new AttendanceDAO();
+    private final UserDAO userDAO = new UserDAO();
 
-    private Timeline clockTimeline;
-    private Timeline workingTimeline;
-    private LocalDateTime checkInTime;
-    private boolean isCheckedIn = false;
-    private boolean salaryVisible = false;
+    // State
+    private User currentUser;
+    private static final Time ON_TIME_CUTOFF = Time.valueOf("08:30:00");
+    private boolean isSalaryVisible = false;
 
-    private List<AttendanceRecord> attendanceRecords = new ArrayList<>();
+    // --- START: TEST CONFIGURATION ---
+    // Change these values to configure the test scenario.
+    private static final int TEST_CUTOFF_HOUR = 8;
+    private static final int TEST_CUTOFF_MINUTE = 30;
+    private static final int TEST_CHECKOUT_HOUR = 17;
+    private static final int TEST_CHECKOUT_MINUTE = 00;
+    // --- END: TEST CONFIGURATION ---
+
+    // Working Hours State
+    private Timeline workingHoursTimeline;
+    private long elapsedSeconds = 0;
+    private Attendance currentAttendanceRecord;
+    private LocalTime testAutoCheckoutTime; // For testing dynamic checkout
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Initialize profile circle
-        profileCircle.setFill(Color.WHITE);
+        currentUser = SessionManager.getInstance().getLoggedInUser();
+        if (currentUser == null) {
+            System.err.println("No user logged in. Cannot initialize staff dashboard.");
+            return;
+        }
+
+        // Set user-specific info
+        userNameLabel.setText(currentUser.getFullName());
+        userRoleLabel.setText(currentUser.getRole());
         
-        // Initialize attendance records
-        loadAttendanceRecords();
-        displayAttendanceRecords();
+        // FIXED: Configure chart axes properly
+        configureChartAxes();
 
-        // Initialize charts
-        drawOnTimeChart();
-        drawLateChart();
-
-        // Initialize clock
         initializeClock();
+        refreshDashboard();
+        restoreCheckInState();
     }
-
-    private void loadAttendanceRecords() {
-        // Sample data - in a real app, this would come from a database
-        attendanceRecords.add(new AttendanceRecord("25-01-2025", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2025", "10:00 AM", false));
-        attendanceRecords.add(new AttendanceRecord("25-01-2025", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2025", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2023", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2023", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2023", "10:00 AM", false));
-        attendanceRecords.add(new AttendanceRecord("25-01-2023", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2023", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2023", "09:46 AM", true));
-        attendanceRecords.add(new AttendanceRecord("25-01-2023", "09:46 AM", true));
-    }
-
-    private void displayAttendanceRecords() {
-        attendanceRecordsVBox.getChildren().clear();
+    
+    // FIXED: New method to configure chart axes
+    private void configureChartAxes() {
+        // Configure Y-axes for 0-100 percentage range
+        onTimeYAxis.setLowerBound(0);
+        onTimeYAxis.setUpperBound(100);
+        onTimeYAxis.setTickUnit(20);
+        onTimeYAxis.setLabel("%");
         
-        for (AttendanceRecord record : attendanceRecords) {
-            HBox recordRow = new HBox();
-            recordRow.getStyleClass().add("record-row");
-            recordRow.setPadding(new Insets(12, 0, 12, 0));
-            recordRow.setSpacing(20);
+        lateYAxis.setLowerBound(0);
+        lateYAxis.setUpperBound(100);
+        lateYAxis.setTickUnit(20);
+        lateYAxis.setLabel("%");
+        
+        // Configure X-axes
+        onTimeXAxis.setLabel("Day");
+        lateXAxis.setLabel("Day");
+    }
+
+    private void refreshDashboard() {
+        loadAndDisplayAttendance();
+        updateSalaryDisplay();
+        updateStats();
+        updateLineCharts();
+    }
+
+    private void updateStats() {
+        try {
+            List<Attendance> userAttendance = attendanceDAO.getAttendanceByUserId(currentUser.getId());
+            if (userAttendance.isEmpty()) {
+                onTimePercentageLabel.setText("0%");
+                latePercentageLabel.setText("0%");
+                return;
+            }
+
+            long onTimeCount = userAttendance.stream().filter(Attendance::isOnTime).count();
+            long lateCount = userAttendance.size() - onTimeCount;
+
+            double total = userAttendance.size();
+            double onTimePercent = (onTimeCount / total) * 100;
+            double latePercent = (lateCount / total) * 100;
+
+            onTimePercentageLabel.setText(String.format("%.0f%%", onTimePercent));
+            latePercentageLabel.setText(String.format("%.0f%%", latePercent));
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadAndDisplayAttendance() {
+        attendanceRecordsVBox.getChildren().clear();
+        try {
+            List<Attendance> attendanceRecords = attendanceDAO.getAttendanceByUserId(currentUser.getId());
+            System.out.println("Loaded attendance records: " + attendanceRecords.size());
+            Platform.runLater(() -> {
+                for (Attendance record : attendanceRecords) {
+                    HBox recordRow = createAttendanceRow(record);
+                    attendanceRecordsVBox.getChildren().add(recordRow);
+                }
+            });
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private HBox createAttendanceRow(Attendance record) {
+        System.out.println("Attendance Record: date=" + record.getDate() + ", time=" + record.getTime() + ", onTime=" + record.isOnTime());
+        HBox recordRow = new HBox();
+        recordRow.setPadding(new Insets(12, 0, 12, 0));
+        recordRow.setSpacing(20);
+
+        Label dateLabel = new Label(record.getDate().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        dateLabel.setTextFill(Color.BLACK);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Circle statusDot = new Circle(5);
+        statusDot.getStyleClass().add(record.isOnTime() ? "status-dot-on-time" : "status-dot-absent");
+
+        Label timeLabel = new Label(record.getTime().toLocalTime().format(DateTimeFormatter.ofPattern("hh:mm a")));
+        timeLabel.setTextFill(Color.BLACK);
+        
+        // FIXED: Improved alignment for time display
+        HBox timeBox = new HBox(10, statusDot, timeLabel);
+        timeBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        recordRow.getChildren().addAll(dateLabel, spacer, timeBox);
+        return recordRow;
+    }
+
+    private void updateSalaryDisplay() {
+        if (isSalaryVisible) {
+            salaryAmountLabel.setText("IDR " + String.format("%,d", currentUser.getSalary()));
+        } else {
+            salaryAmountLabel.setText("IDR ********");
+        }
+    }
+
+    private void restoreCheckInState() {
+        try {
+            currentAttendanceRecord = attendanceDAO.getLatestUnfinishedAttendance(currentUser.getId());
+            if (currentAttendanceRecord != null) {
+                // User was checked in but closed the app. Restore the state.
+                checkButton.setText("Check Out");
+                checkButton.getStyleClass().setAll("check-button-out");
+                
+                LocalTime checkInTime = currentAttendanceRecord.getTime().toLocalTime();
+                elapsedSeconds = java.time.Duration.between(checkInTime, LocalTime.now()).getSeconds();
+                startWorkingHoursTimer();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void toggleCheckIn() {
+        if (currentAttendanceRecord == null) {
+            // --- CHECK IN (TEST MODE) ---
+            try {
+                // 1. Check if user has already checked in today
+                if (attendanceDAO.hasCheckedInToday(currentUser.getId())) {
+                    checkButton.setText("Checked In Today");
+                    checkButton.setDisable(true);
+                    System.out.println("User has already checked in today. Cannot check in again.");
+                    // Optionally, show an alert to the user
+                    // Alert alert = new Alert(Alert.AlertType.WARNING, "You have already checked in today.");
+                    // alert.showAndWait();
+                    return;
+                }
+
+                // 2. Configure test times
+                LocalTime now = LocalTime.now();
+                testAutoCheckoutTime = LocalTime.of(TEST_CHECKOUT_HOUR, TEST_CHECKOUT_MINUTE);
+                LocalTime onTimeCutoffForTest = LocalTime.of(TEST_CUTOFF_HOUR, TEST_CUTOFF_MINUTE);
+
+                System.out.println("--- TEST MODE: CHECK-IN ---");
+                System.out.println("Check-in time: " + now.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+                System.out.println("Late if after: " + onTimeCutoffForTest.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+                System.out.println("Auto checkout at: " + testAutoCheckoutTime.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+
+                boolean onTime = !now.isAfter(onTimeCutoffForTest);
+
+                // 3. Create and save attendance record
+                Attendance newAttendance = new Attendance();
+                newAttendance.setIdStaff(currentUser.getId());
+                newAttendance.setDate(Date.valueOf(java.time.LocalDate.now()));
+                newAttendance.setTime(Time.valueOf(now));
+                newAttendance.setOnTime(onTime);
+                newAttendance.setWorkingHours(0); // Mark as unfinished
+
+                attendanceDAO.addAttendance(newAttendance);
+                
+                // 4. Refresh user data to get updated salary from trigger
+                currentUser = userDAO.getUserById(currentUser.getId());
+
+                // 5. Update UI and start timer
+                currentAttendanceRecord = attendanceDAO.getLatestUnfinishedAttendance(currentUser.getId());
+                checkButton.setText("Check Out");
+                checkButton.getStyleClass().setAll("check-button-out");
+                elapsedSeconds = 0;
+                startWorkingHoursTimer();
+                refreshDashboard();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                // Handle DB error
+            }
+        } else {
+            // --- CHECK OUT ---
+            stopWorkingHoursTimer();
+            testAutoCheckoutTime = null; // Reset test variable
             
-            // Date on left
-            Label dateLabel = new Label(record.getDate());
-            dateLabel.getStyleClass().add("record-date");
-            
-            // Spacer
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            
-            // Time with status dot on right
-            HBox timeBox = new HBox();
-            timeBox.setSpacing(15);
-            timeBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            
-            Circle statusDot = new Circle(5);
-            statusDot.getStyleClass().add(record.isOnTime() ? "status-dot-on-time" : "status-dot-absent");
-            
-            Label timeLabel = new Label(record.getTime());
-            timeLabel.getStyleClass().add("time-text");
-            
-            timeBox.getChildren().addAll(statusDot, timeLabel);
-            
-            recordRow.getChildren().addAll(dateLabel, spacer, timeBox);
-            
-            attendanceRecordsVBox.getChildren().add(recordRow);
+            try {
+                attendanceDAO.updateWorkingHoursForToday(currentAttendanceRecord.getId(), (int) elapsedSeconds);
+
+                // Salary is now handled by the database trigger.
+                // We just need to refresh the user data to get the latest salary.
+                currentUser = userDAO.getUserById(currentUser.getId());
+
+                currentAttendanceRecord = null;
+                checkButton.setText("Check In");
+                checkButton.getStyleClass().setAll("check-button-in");
+                refreshDashboard();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void initializeClock() {
-        // Initialize the clock timeline
-        clockTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(1), event -> {
-                updateClock();
-            })
-        );
+        Timeline clockTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            updateDigitalClock();
+            drawAnalogClock();
+        }));
         clockTimeline.setCycleCount(Animation.INDEFINITE);
         clockTimeline.play();
-        
-        // Initial update
-        updateClock();
+        drawAnalogClock(); // Initial draw
     }
 
-    private void updateClock() {
-        LocalDateTime now = LocalDateTime.now();
-        
-        // Update digital clock with uppercase AM/PM
-        int hour = now.getHour();
-        int minute = now.getMinute();
-        String amPm = hour >= 12 ? "PM" : "AM";
-        int displayHour = hour % 12;
-        if (displayHour == 0) displayHour = 12;
-        
-        digitalTimeLabel.setText(String.format("%d : %02d %s", displayHour, minute, amPm));
-        
-        // Draw analog clock
-        drawAnalogClock(now);
+    private void updateDigitalClock() {
+        LocalTime now = LocalTime.now();
+        digitalTimeLabel.setText(now.format(DateTimeFormatter.ofPattern("hh : mm : ss a")));
     }
-
-    private void drawAnalogClock(LocalDateTime time) {
-        double centerX = analogClockCanvas.getWidth() / 2;
-        double centerY = analogClockCanvas.getHeight() / 2;
-        double radius = Math.min(centerX, centerY) - 15;
-        
+    
+    private void drawAnalogClock() {
         GraphicsContext gc = analogClockCanvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, analogClockCanvas.getWidth(), analogClockCanvas.getHeight());
+        double width = analogClockCanvas.getWidth();
+        double height = analogClockCanvas.getHeight();
+        double centerX = width / 2;
+        double centerY = height / 2;
+        double radius = Math.min(width, height) / 2 * 0.85;
         
-        // Draw clock face background
-        gc.setFill(Color.web("#dbeafe"));
-        gc.setGlobalAlpha(0.4);
-        gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
-        gc.setGlobalAlpha(1.0);
-        
+        gc.clearRect(0, 0, width, height);
+
         // Draw clock face
-        gc.setFill(Color.WHITE);
-        gc.fillOval(centerX - radius * 0.85, centerY - radius * 0.85, radius * 1.7, radius * 1.7);
-        gc.setStroke(Color.web("#e5e7eb"));
-        gc.setLineWidth(2);
-        gc.strokeOval(centerX - radius * 0.85, centerY - radius * 0.85, radius * 1.7, radius * 1.7);
-        
-        // Draw hour markers
-        gc.setStroke(Color.web("#9ca3af"));
+        gc.setStroke(Color.web("#9CA3AF"));
         gc.setLineWidth(3);
+        
         for (int i = 0; i < 12; i++) {
             double angle = Math.toRadians(i * 30);
-            double startX = centerX + Math.sin(angle) * (radius * 0.8);
-            double startY = centerY - Math.cos(angle) * (radius * 0.8);
+            double startX = centerX + Math.sin(angle) * (radius - 10);
+            double startY = centerY - Math.cos(angle) * (radius - 10);
             double endX = centerX + Math.sin(angle) * radius;
             double endY = centerY - Math.cos(angle) * radius;
             gc.strokeLine(startX, startY, endX, endY);
         }
-        
-        // Calculate hand angles
+
+        // Get current time
+        LocalTime time = LocalTime.now();
         int hour = time.getHour() % 12;
         int minute = time.getMinute();
         int second = time.getSecond();
-        
+
+        // Calculate hand angles
         double hourAngle = Math.toRadians((hour * 30) + (minute * 0.5));
         double minuteAngle = Math.toRadians(minute * 6);
         double secondAngle = Math.toRadians(second * 6);
-        
-        // Draw hour hand
-        drawClockHand(gc, centerX, centerY, hourAngle, radius * 0.5, 5, Color.web("#1f2937"));
-        
-        // Draw minute hand
-        drawClockHand(gc, centerX, centerY, minuteAngle, radius * 0.7, 4, Color.web("#4b5563"));
-        
-        // Draw second hand
-        drawClockHand(gc, centerX, centerY, secondAngle, radius * 0.8, 2, Color.web("#ef4444"));
-        
+
+        // Draw hands
+        drawClockHand(gc, centerX, centerY, hourAngle, radius * 0.5, 6, Color.BLACK);
+        drawClockHand(gc, centerX, centerY, minuteAngle, radius * 0.75, 4, Color.BLACK);
+        drawClockHand(gc, centerX, centerY, secondAngle, radius * 0.9, 2, Color.RED);
+
         // Draw center dot
-        gc.setFill(Color.web("#1f2937"));
-        gc.fillOval(centerX - 6, centerY - 6, 12, 12);
+        gc.setFill(Color.BLACK);
+        gc.fillOval(centerX - 5, centerY - 5, 10, 10);
     }
 
-    private void drawClockHand(GraphicsContext gc, double centerX, double centerY, 
-                              double angle, double length, double width, Color color) {
+    private void drawClockHand(GraphicsContext gc, double centerX, double centerY, double angle, double length, double width, Color color) {
         double endX = centerX + Math.sin(angle) * length;
         double endY = centerY - Math.cos(angle) * length;
-        
         gc.setStroke(color);
         gc.setLineWidth(width);
         gc.strokeLine(centerX, centerY, endX, endY);
     }
 
-    private void drawOnTimeChart() {
-        GraphicsContext gc = onTimeChartCanvas.getGraphicsContext2D();
-        drawChart(gc, Color.web("#22c55e"), 65);
-    }
-
-    private void drawLateChart() {
-        GraphicsContext gc = lateChartCanvas.getGraphicsContext2D();
-        drawChart(gc, Color.web("#ef4444"), 35);
-    }
-
-    private void drawChart(GraphicsContext gc, Color color, int percentage) {
-        double width = gc.getCanvas().getWidth();
-        double height = gc.getCanvas().getHeight();
-        
-        gc.clearRect(0, 0, width, height);
-        
-        // Create gradient
-        LinearGradient gradient = new LinearGradient(
-            0, 0, 0, height,
-            false, CycleMethod.NO_CYCLE,
-            new Stop(0, color.deriveColor(0, 1, 1, 0.3)),
-            new Stop(1, color.deriveColor(0, 1, 1, 0.1))
-        );
-        
-        // Generate points for the wave
-        double[] xPoints = new double[120];
-        double[] yPoints = new double[120];
-        
-        for (int i = 0; i < 120; i++) {
-            xPoints[i] = width * i / 119;
-            
-            // Create a wave pattern
-            double wave = Math.sin(i * 0.08) * 10;
-            
-            // Adjust wave height based on percentage
-            double baseHeight = height * 0.7;
-            double percentageEffect = (100 - percentage) / 100.0 * height * 0.4;
-            
-            yPoints[i] = baseHeight - wave - percentageEffect;
-        }
-        
-        // Draw filled area
-        gc.setFill(gradient);
-        gc.beginPath();
-        gc.moveTo(0, yPoints[0]);
-        
-        for (int i = 1; i < 120; i++) {
-            gc.lineTo(xPoints[i], yPoints[i]);
-        }
-        
-        // Complete the path to create a closed shape
-        gc.lineTo(width, height);
-        gc.lineTo(0, height);
-        gc.closePath();
-        gc.fill();
-        
-        // Draw the line on top
-        gc.setStroke(color);
-        gc.setLineWidth(3);
-        gc.beginPath();
-        gc.moveTo(0, yPoints[0]);
-        
-        for (int i = 1; i < 120; i++) {
-            gc.lineTo(xPoints[i], yPoints[i]);
-        }
-        
-        gc.stroke();
-    }
-
-    @FXML
-    private void toggleCheckIn() {
-        if (!isCheckedIn) {
-            // Check in
-            isCheckedIn = true;
-            checkInTime = LocalDateTime.now();
-            checkButton.setText("Check Out");
-            checkButton.getStyleClass().remove("check-button-in");
-            checkButton.getStyleClass().add("check-button-out");
-            
-            // Start working time counter
-            if (workingTimeline != null) {
-                workingTimeline.stop();
-            }
-            
-            workingTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(1), event -> {
-                    updateWorkingTime();
-                })
-            );
-            workingTimeline.setCycleCount(Animation.INDEFINITE);
-            workingTimeline.play();
-            
-            // Add new attendance record with current time in uppercase AM/PM format
-            LocalDate today = LocalDate.now();
-            String formattedDate = today.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-            
-            // Format time with uppercase AM/PM
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH);
-            String formattedTime = LocalDateTime.now().format(timeFormatter).toUpperCase();
-            
-            // Determine if on time (assuming work starts at 9:00 AM)
-            boolean onTime = LocalDateTime.now().getHour() < 9 || 
-                           (LocalDateTime.now().getHour() == 9 && LocalDateTime.now().getMinute() <= 0);
-            
-            AttendanceRecord newRecord = new AttendanceRecord(formattedDate, formattedTime, onTime);
-            attendanceRecords.add(0, newRecord); // Add to the beginning of the list
-            displayAttendanceRecords();
-            
-        } else {
-            // Check out
-            isCheckedIn = false;
-            checkInTime = null;
-            checkButton.setText("Check In");
-            checkButton.getStyleClass().remove("check-button-out");
-            checkButton.getStyleClass().add("check-button-in");
-            
-            // Stop working time counter
-            if (workingTimeline != null) {
-                workingTimeline.stop();
-            }
-            
-            workingTimeLabel.setText("0 Hr 00 Mins 00 Secs");
-        }
-    }
-
-    private void updateWorkingTime() {
-        if (checkInTime != null) {
-            LocalDateTime now = LocalDateTime.now();
-            long secondsDiff = java.time.Duration.between(checkInTime, now).getSeconds();
-            
-            long hours = secondsDiff / 3600;
-            long minutes = (secondsDiff % 3600) / 60;
-            long seconds = secondsDiff % 60;
-            
-            workingTimeLabel.setText(String.format("%d Hr %02d Mins %02d Secs", hours, minutes, seconds));
-        }
-    }
-
     @FXML
     private void handleViewSalary() {
-        // Toggle salary visibility instead of showing popup
-        if (!salaryVisible) {
-            salaryAmountLabel.setText("IDR 5,000,000");
-            viewSalaryButton.setText("Hide");
-            salaryVisible = true;
-        } else {
-            salaryAmountLabel.setText("IDR ********");
-            viewSalaryButton.setText("View");
-            salaryVisible = false;
+        isSalaryVisible = !isSalaryVisible;
+        updateSalaryDisplay();
+    }
+
+    // FIXED: Complete rewrite of updateLineCharts method
+    private void updateLineCharts() {
+        try {
+            List<Attendance> userAttendance = attendanceDAO.getAttendanceByUserId(currentUser.getId());
+            
+            // Group by date and calculate on time/late percentage per day
+            Map<String, List<Attendance>> byDate = userAttendance.stream()
+                .collect(java.util.stream.Collectors.groupingBy(a -> a.getDate().toLocalDate().toString()));
+
+            XYChart.Series<String, Number> onTimeSeries = new XYChart.Series<>();
+            onTimeSeries.setName("On Time %");
+            XYChart.Series<String, Number> lateSeries = new XYChart.Series<>();
+            lateSeries.setName("Late %");
+
+            java.util.List<String> sortedDates = new java.util.ArrayList<>(byDate.keySet());
+            java.util.Collections.sort(sortedDates);
+            
+            for (String date : sortedDates) {
+                List<Attendance> records = byDate.get(date);
+                long onTimeCount = records.stream().filter(Attendance::isOnTime).count();
+                long total = records.size();
+                double onTimePercent = total > 0 ? (onTimeCount * 100.0) / total : 0;
+                double latePercent = 100.0 - onTimePercent;
+                
+                // FIXED: Extract only the day from the date (format: YYYY-MM-DD)
+                String dayOnly = date.substring(date.lastIndexOf("-") + 1);
+                
+                onTimeSeries.getData().add(new XYChart.Data<>(dayOnly, onTimePercent));
+                lateSeries.getData().add(new XYChart.Data<>(dayOnly, latePercent));
+            }
+            
+            // Clear and set up the charts
+            onTimeLineChart.getData().clear();
+            onTimeLineChart.getData().add(onTimeSeries);
+            
+            lateLineChart.getData().clear();
+            lateLineChart.getData().add(lateSeries);
+            
+            // FIXED: Ensure Y-axis is properly configured
+            Platform.runLater(() -> {
+                onTimeYAxis.setLowerBound(0);
+                onTimeYAxis.setUpperBound(100);
+                onTimeYAxis.setTickUnit(20);
+                
+                lateYAxis.setLowerBound(0);
+                lateYAxis.setUpperBound(100);
+                lateYAxis.setTickUnit(20);
+                
+                // Enable symbols for better visibility
+                onTimeLineChart.setCreateSymbols(true);
+                lateLineChart.setCreateSymbols(true);
+                
+                // Hide legend if not needed
+                onTimeLineChart.setLegendVisible(false);
+                lateLineChart.setLegendVisible(false);
+            });
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    // Helper class for attendance records
-    private static class AttendanceRecord {
-        private String date;
-        private String time;
-        private boolean onTime;
+    // Timer logic
+    private void startWorkingHoursTimer() {
+        stopWorkingHoursTimer(); // Ensure no multiple timers are running
+        workingHoursTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            elapsedSeconds++;
+            updateWorkingTimeLabel();
 
-        public AttendanceRecord(String date, String time, boolean onTime) {
-            this.date = date;
-            this.time = time;
-            this.onTime = onTime;
-        }
+            // Auto checkout logic (modified for testing)
+            LocalTime effectiveCheckoutTime = (testAutoCheckoutTime != null) 
+                ? testAutoCheckoutTime 
+                : LocalTime.of(17, 0);
+            
+            if (LocalTime.now().isAfter(effectiveCheckoutTime) && currentAttendanceRecord != null) {
+                toggleCheckIn();
+            }
+        }));
+        workingHoursTimeline.setCycleCount(Animation.INDEFINITE);
+        workingHoursTimeline.play();
+    }
 
-        public String getDate() {
-            return date;
+    private void stopWorkingHoursTimer() {
+        if (workingHoursTimeline != null) {
+            workingHoursTimeline.stop();
         }
+    }
 
-        public String getTime() {
-            return time;
-        }
-
-        public boolean isOnTime() {
-            return onTime;
-        }
+    private void updateWorkingTimeLabel() {
+        long hours = elapsedSeconds / 3600;
+        long minutes = (elapsedSeconds % 3600) / 60;
+        long seconds = elapsedSeconds % 60;
+        workingTimeLabel.setText(String.format("%d Hr %02d Mins %02d Secs", hours, minutes, seconds));
     }
 }

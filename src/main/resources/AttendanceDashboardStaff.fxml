@@ -13,6 +13,9 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 
 <BorderPane prefHeight="800.0" prefWidth="1400.0" styleClass="root-pane" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.controller.AttendanceDashboardController">
    <top>
@@ -39,8 +42,8 @@
                <children>
                   <VBox alignment="CENTER_RIGHT">
                      <children>
-                        <Label styleClass="user-name" text="Reffy Mahardika" />
-                        <Label styleClass="user-role" text="Staff" />
+                        <Label fx:id="userNameLabel" styleClass="user-name" text="Reffy Mahardika" />
+                        <Label fx:id="userRoleLabel" styleClass="user-role" text="Staff" />
                      </children>
                   </VBox>
                   <Circle fx:id="profileCircle" radius="25" styleClass="profile-pic" />
@@ -68,13 +71,19 @@
             <!-- Left Column - Attendance Table with proper spacing -->
             <VBox styleClass="card" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
                <children>
+                  <!-- FIXED: Time In alignment issue -->
                   <HBox alignment="CENTER_LEFT" styleClass="table-header">
                      <children>
                         <Label text="Date" />
                         <Label styleClass="sort-icon" text="↕" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <Label text="Time In" />
-                        <Label styleClass="sort-icon" text="↕" />
+                        <!-- Fixed alignment by using HBox for Time In section -->
+                        <HBox alignment="CENTER_LEFT" spacing="5.0">
+                           <children>
+                              <Label text="Time In" />
+                              <Label styleClass="sort-icon" text="↕" />
+                           </children>
+                        </HBox>
                      </children>
                   </HBox>
                   <ScrollPane fitToWidth="true" styleClass="table-records-pane" VBox.vgrow="ALWAYS">
@@ -112,28 +121,62 @@
                <children>
                   <!-- Top Row - Three Cards -->
                   <HBox spacing="25.0">
-                     <!-- On Time Percentage -->
+                     <!-- FIXED: On Time Percentage - moved percentage next to title -->
                      <VBox styleClass="card" HBox.hgrow="ALWAYS">
                         <children>
-                           <Label styleClass="stat-title" text="On Time Percentage" />
-                           <Label styleClass="stat-month" text="February" />
-                           <Label styleClass="stat-percentage" text="65%" />
-                           <Region VBox.vgrow="ALWAYS" />
-                           <Canvas fx:id="onTimeChartCanvas" height="70.0" width="250.0" />
+                           <!-- New layout with title and percentage side by side -->
+                           <HBox alignment="CENTER_LEFT" spacing="10.0">
+                              <children>
+                                 <VBox>
+                                    <children>
+                                       <Label styleClass="stat-title" text="On Time Percentage" />
+                                       <Label styleClass="stat-month" text="February" />
+                                    </children>
+                                 </VBox>
+                                 <Region HBox.hgrow="ALWAYS" />
+                                 <Label fx:id="onTimePercentageLabel" styleClass="stat-percentage" text="24%" />
+                              </children>
+                           </HBox>
+                           <!-- Chart with more space -->
+                           <LineChart fx:id="onTimeLineChart" prefHeight="120" maxHeight="120.0" prefWidth="280.0" maxWidth="280.0">
+                              <xAxis>
+                                 <CategoryAxis fx:id="onTimeXAxis" side="BOTTOM" />
+                              </xAxis>
+                              <yAxis>
+                                 <NumberAxis fx:id="onTimeYAxis" side="LEFT" lowerBound="0" upperBound="100" tickUnit="20" />
+                              </yAxis>
+                           </LineChart>
                         </children>
                         <padding>
                            <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
                         </padding>
                      </VBox>
                      
-                     <!-- Late Percentage -->
+                     <!-- FIXED: Late Percentage - moved percentage next to title -->
                      <VBox styleClass="card" HBox.hgrow="ALWAYS">
                         <children>
-                           <Label styleClass="stat-title" text="Late Percentage" />
-                           <Label styleClass="stat-month" text="February" />
-                           <Label styleClass="stat-percentage" text="35%" />
-                           <Region VBox.vgrow="ALWAYS" />
-                           <Canvas fx:id="lateChartCanvas" height="70.0" width="250.0" />
+                           <!-- New layout with title and percentage side by side -->
+                           <HBox alignment="CENTER_LEFT" spacing="10.0">
+                              <children>
+                                 <VBox>
+                                    <children>
+                                       <Label styleClass="stat-title" text="Late Percentage" />
+                                       <Label styleClass="stat-month" text="February" />
+                                    </children>
+                                 </VBox>
+                                 <Region HBox.hgrow="ALWAYS" />
+                                 <Label fx:id="latePercentageLabel" styleClass="stat-percentage" text="76%" />
+                              </children>
+                           </HBox>
+                           <!-- Chart with more space -->
+                           <LineChart fx:id="lateLineChart" prefHeight="120" maxHeight="120.0" prefWidth="280.0" maxWidth="280.0">
+                              <xAxis>
+                                 <CategoryAxis fx:id="lateXAxis" side="BOTTOM" />
+                              </xAxis>
+                              <yAxis>
+                                 <NumberAxis fx:id="lateYAxis" side="LEFT" lowerBound="0" upperBound="100" tickUnit="20" />
+                              </yAxis>
+                           </LineChart>
                         </children>
                         <padding>
                            <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
