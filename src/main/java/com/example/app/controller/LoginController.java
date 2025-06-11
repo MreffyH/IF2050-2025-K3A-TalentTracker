@@ -57,7 +57,8 @@ public class LoginController {
 
             Stage mainStage = new Stage();
             mainStage.setTitle("Project Management System");
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, 1920, 1080);
+            mainStage.setMaximized(true);
             scene.getStylesheets().add(getClass().getResource("/com/example/app/view/styles.css").toExternalForm());
             mainStage.setScene(scene);
             mainStage.show();

@@ -70,7 +70,8 @@ public class MainController {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Add New Project");
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, 1920, 1080);
+        stage.setMaximized(true);
         scene.getStylesheets().add(getClass().getResource("/com/example/app/view/styles.css").toExternalForm());
         stage.setScene(scene);
         stage.showAndWait();
