@@ -19,6 +19,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+        // Database.initialize(); // This is no longer needed with the new DB schema
         launch(args);
     }
 } 

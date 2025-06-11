@@ -1,7 +1,13 @@
 package com.example.app.controller;
 
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import com.example.app.dao.ProjectDAO;
+import com.example.app.dao.ProjectDAOImpl;
 import com.example.app.model.Project;
-import com.example.app.model.Staff;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -12,25 +18,26 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class MainController {
 
     @FXML
     private TilePane projectsTilePane;
 
-    private List<Project> projects = new ArrayList<>();
+    private ProjectDAO projectDAO;
+
+    public MainController() {
+        this.projectDAO = new ProjectDAOImpl();
+    }
+
+    @FXML
+    public void initialize() {
+        refreshProjectsGrid();
+    }
 
     @FXML
     protected void navigateToAddProject() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/app/view/add_project.fxml"));
         Parent root = loader.load();
-
-        AddProjectController controller = loader.getController();
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -40,41 +47,39 @@ public class MainController {
         stage.setScene(scene);
         stage.showAndWait();
 
-        Project newProject = controller.getNewProject();
-        if (newProject != null) {
-            projects.add(newProject);
-            refreshProjectsGrid();
-        }
+        refreshProjectsGrid();
     }
 
     private void refreshProjectsGrid() {
         projectsTilePane.getChildren().clear();
+        List<Project> projects = projectDAO.getAllProjects();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
+
         for (Project project : projects) {
             VBox projectCard = new VBox();
             projectCard.getStyleClass().add("project-card");
-            
-            Label title = new Label(project.getTitle());
+
+            Label title = new Label(project.getProjectName());
             title.getStyleClass().add("project-title");
-            
+
             Label description = new Label(project.getDescription());
             description.getStyleClass().add("project-description");
             description.setWrapText(true);
 
-            projectCard.getChildren().addAll(title, description);
+            Label type = new Label("Type: " + project.getType());
+            type.getStyleClass().add("project-status");
 
-            if (project.getDeadline() != null) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-                Label deadline = new Label("Due: " + project.getDeadline().format(formatter));
-                deadline.getStyleClass().add("project-deadline");
-                projectCard.getChildren().add(deadline);
-            }
+            Label staff = new Label("Staff ID: " + project.getIdStaff() + " | CEO ID: " + project.getIdCEO());
+            staff.getStyleClass().add("project-staff");
 
-            if (project.getAssignedStaff() != null && !project.getAssignedStaff().isEmpty()) {
-                Label staffLabel = new Label("Staff: " + project.getAssignedStaff().stream().map(Staff::getName).collect(Collectors.joining(", ")));
-                staffLabel.getStyleClass().add("project-staff");
-                projectCard.getChildren().add(staffLabel);
-            }
+            projectCard.getChildren().addAll(title, description, type, staff);
             
+            if (project.getStartDate() != null) {
+                Label date = new Label("Dates: " + project.getStartDate().format(formatter) + " - " + project.getEndDate().format(formatter));
+                date.getStyleClass().add("project-date");
+                projectCard.getChildren().add(date);
+            }
+
             projectsTilePane.getChildren().add(projectCard);
         }
     }

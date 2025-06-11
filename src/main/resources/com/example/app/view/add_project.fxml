@@ -15,40 +15,40 @@
 <?import javafx.scene.text.Font?>
 
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.app.controller.AddProjectController"
-      style="-fx-background-color: #FFB7CA;" spacing="0">
+      style="-fx-background-color: #FFB7CA;" spacing="10" prefWidth="400" alignment="TOP_CENTER"
+      styleClass="root-container">
 
     <!-- <fx:include source="HeaderView.fxml" /> -->
 
-    <!-- Content -->
-    <VBox spacing="20" style="-fx-padding: 20;">
-        <Label text="Add New Project" style="-fx-font-size: 2.5em; -fx-text-fill: #2c3e50; -fx-font-weight: bold;"/>
+    <Label text="Add New Project" styleClass="header-title"/>
 
-        <VBox style="-fx-background-color: rgba(255,255,255,0.95); -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 30;" spacing="15">
+    <VBox styleClass="form-container" spacing="15">
 
-            <Label text="Project Title"/>
-            <TextField fx:id="projectTitleField" promptText="Enter the project title"/>
+        <Label text="Project ID"/>
+        <TextField fx:id="projectIdField" promptText="e.g., 101"/>
 
-            <Label text="Project Description"/>
-            <TextArea fx:id="projectDescriptionArea" promptText="Provide a detailed description of the project" wrapText="true"/>
+        <Label text="Project Name"/>
+        <TextField fx:id="projectNameField" promptText="Enter the project name"/>
 
-            <Label text="Project Type"/>
-            <ComboBox fx:id="projectTypeComboBox" promptText="Select a project type" style="-fx-font-size: 1em;"/>
+        <Label text="Project Description"/>
+        <TextArea fx:id="projectDescriptionArea" promptText="Provide a detailed description" wrapText="true"/>
 
-            <Label text="Project Deadline"/>
-            <DatePicker fx:id="projectDeadlinePicker" promptText="Choose a deadline"/>
+        <Label text="Project Type"/>
+        <ComboBox fx:id="projectTypeComboBox" promptText="Select a project type"/>
 
-            <Label text="Assign Staff"/>
-            <VBox fx:id="staffContainer" style="-fx-border-color: #ccc; -fx-border-radius: 15; -fx-background-radius: 15; -fx-background-color: #f8f9fa;">
-                <FlowPane fx:id="selectedStaffFlowPane" hgap="5" vgap="5" style="-fx-padding: 10;">
-                    <!-- Staff tags will be added here by the controller -->
-                    <TextField fx:id="staffInputField" promptText="Type staff name or ID..." style="-fx-background-color: transparent;"/>
-                </FlowPane>
-                <VBox fx:id="staffSuggestionsVBox" visible="false" managed="false" style="-fx-background-color: white; -fx-border-color: #ddd; -fx-padding: 5;"/>
-            </VBox>
+        <Label text="CEO"/>
+        <ComboBox fx:id="ceoComboBox" promptText="Select the CEO"/>
 
-            <Button fx:id="submitButton" text="Create New Project" onAction="#handleSubmitButtonAction"
-                    style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #27ae60, #2ecc71); -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.2em;"/>
+        <Label text="Staff"/>
+        <ComboBox fx:id="staffComboBox" promptText="Select the Staff"/>
 
-        </VBox>
+        <Label text="Start Date"/>
+        <DatePicker fx:id="startDatePicker" promptText="Choose a start date"/>
+
+        <Label text="End Date"/>
+        <DatePicker fx:id="endDatePicker" promptText="Choose an end date"/>
+
+        <Button fx:id="submitButton" text="Create New Project" onAction="#handleSubmitButtonAction" styleClass="submit-button"/>
+
     </VBox>
 </VBox> 

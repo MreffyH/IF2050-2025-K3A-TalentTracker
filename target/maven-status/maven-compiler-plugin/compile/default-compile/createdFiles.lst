@@ -1,5 +1,10 @@
+com\example\app\dao\ProjectDAOImpl.class
 com\example\app\controller\MainController.class
-com\example\app\controller\AddProjectController.class
 com\example\app\model\Project.class
-com\example\app\model\Staff.class
 com\example\app\Main.class
+com\example\app\model\User.class
+com\example\app\dao\ProjectDAO.class
+com\example\app\util\Database.class
+com\example\app\dao\UserDAOImpl.class
+com\example\app\dao\UserDAO.class
+com\example\app\controller\AddProjectController.class

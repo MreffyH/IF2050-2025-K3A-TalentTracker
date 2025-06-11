@@ -1,29 +1,44 @@
 package com.example.app.model;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 
 public class Project {
-    private String title;
+    private int idProject;
+    private String projectName;
+    private String type;
     private String description;
-    private LocalDate deadline;
-    private String projectType;
-    private List<Staff> assignedStaff;
+    private int idCEO;
+    private int idStaff;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
-    public Project(String title, String description, LocalDate deadline, String projectType, List<Staff> assignedStaff) {
-        this.title = title;
-        this.description = description;
-        this.deadline = deadline;
-        this.projectType = projectType;
-        this.assignedStaff = assignedStaff;
+    // Constructors
+    public Project() {
     }
 
-    public String getTitle() {
-        return title;
+    // Getters and Setters
+    public int getIdProject() {
+        return idProject;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setIdProject(int idProject) {
+        this.idProject = idProject;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getDescription() {
@@ -34,27 +49,35 @@ public class Project {
         this.description = description;
     }
 
-    public LocalDate getDeadline() {
-        return deadline;
+    public int getIdCEO() {
+        return idCEO;
     }
 
-    public void setDeadline(LocalDate deadline) {
-        this.deadline = deadline;
+    public void setIdCEO(int idCEO) {
+        this.idCEO = idCEO;
     }
 
-    public String getProjectType() {
-        return projectType;
+    public int getIdStaff() {
+        return idStaff;
     }
 
-    public void setProjectType(String projectType) {
-        this.projectType = projectType;
+    public void setIdStaff(int idStaff) {
+        this.idStaff = idStaff;
     }
 
-    public List<Staff> getAssignedStaff() {
-        return assignedStaff;
+    public LocalDateTime getStartDate() {
+        return startDate;
     }
 
-    public void setAssignedStaff(List<Staff> assignedStaff) {
-        this.assignedStaff = assignedStaff;
+    public void setStartDate(LocalDateTime startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDateTime getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDateTime endDate) {
+        this.endDate = endDate;
     }
 } 
