@@ -35,17 +35,14 @@ public class CalendarController {
         currentYearMonth = YearMonth.from(today);
         selectedDate = today;
         
-        // Set up event handlers for navigation buttons
         prevMonth.setOnAction(e -> handlePrevMonth());
         nextMonth.setOnAction(e -> handleNextMonth());
         
-        // Initialize the calendar
         setupWeekDays();
         updateCalendar();
     }
 
     private void setupWeekDays() {
-        // Start with Monday
         for (int i = 0; i < 7; i++) {
             DayOfWeek day = DayOfWeek.of(((i + 1) % 7) + 1);
             Label dayLabel = new Label(day.getDisplayName(TextStyle.SHORT, locale).substring(0, 2));
@@ -55,25 +52,19 @@ public class CalendarController {
     }
 
     private void updateCalendar() {
-        // Update month and year labels
         monthLabel.setText(currentYearMonth.getMonth().getDisplayName(TextStyle.FULL, locale));
         yearLabel.setText(String.valueOf(currentYearMonth.getYear()));
 
-        // Clear existing calendar
         calendarGrid.getChildren().clear();
 
-        // Get date information
         LocalDate firstOfMonth = currentYearMonth.atDay(1);
         int daysInMonth = currentYearMonth.lengthOfMonth();
         
-        // Calculate the day of week (0 = Monday, 6 = Sunday)
         int dayOfWeek = (firstOfMonth.getDayOfWeek().getValue() - 1) % 7;
 
-        // Add calendar dates
         int day = 1;
         int row = 0;
 
-        // Add previous month's days
         YearMonth prevMonth = currentYearMonth.minusMonths(1);
         int prevMonthDays = prevMonth.lengthOfMonth();
         for (int i = 0; i < dayOfWeek; i++) {
@@ -82,25 +73,21 @@ public class CalendarController {
             calendarGrid.add(dateLabel, i, row);
         }
         
-        // Fill in the calendar grid
         while (day <= daysInMonth) {
             for (int col = dayOfWeek; col < 7 && day <= daysInMonth; col++) {
                 Label dateLabel = new Label(String.valueOf(day));
                 dateLabel.getStyleClass().add("calendar-date");
                 
-                // Store the date in the label's properties
                 final int currentDay = day;
                 dateLabel.setUserData(currentYearMonth.atDay(currentDay));
                 
-                // Add click handler for date selection
                 dateLabel.setOnMouseClicked(e -> handleDateClick(dateLabel));
                 
-                // Highlight today's date
                 if (today.equals(currentYearMonth.atDay(day))) {
                     dateLabel.getStyleClass().add("today");
+                    dateLabel.setStyle("-fx-background-color: #223055; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 0; -fx-padding: 5;");
                 }
                 
-                // Highlight selected date
                 if (selectedDate != null && selectedDate.equals(currentYearMonth.atDay(day))) {
                     dateLabel.getStyleClass().add("selected");
                     selectedLabel = dateLabel;
@@ -113,7 +100,6 @@ public class CalendarController {
             dayOfWeek = 0;
         }
 
-        // Add next month's days
         int nextMonthDay = 1;
         while (row < 6) {
             for (int col = dayOfWeek; col < 7; col++) {
@@ -128,16 +114,13 @@ public class CalendarController {
     }
 
     private void handleDateClick(Label dateLabel) {
-        // Remove selection from previously selected date
         if (selectedLabel != null) {
             selectedLabel.getStyleClass().remove("selected");
         }
         
-        // Add selection to newly selected date
         dateLabel.getStyleClass().add("selected");
         selectedLabel = dateLabel;
         
-        // Update selected date
         selectedDate = (LocalDate) dateLabel.getUserData();
     }
 

@@ -1,117 +1,88 @@
 package com.talenttracker.controller;
 
+import com.talenttracker.Main;
+import com.talenttracker.dao.AlbumDAO;
+import com.talenttracker.dao.SocialMediaDAO;
+import com.talenttracker.dao.StatsDAO;
+import com.talenttracker.model.Album;
+import com.talenttracker.model.Popularity;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.util.Duration;
 import javafx.stage.FileChooser;
-
-import java.sql.ResultSet;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Random;
-
-import com.talenttracker.DatabaseManager;
-import com.talenttracker.Main;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
+import javafx.util.Duration;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 
 public class LaporanKinerjaController {
 
-    // --- Injected Header Controller ---
-    @FXML private HeaderController headerComponentController;
-
-    // --- UI Elements ---
     @FXML private Label successMessageLabel;
     @FXML private ImageView artistAvatarView;
     @FXML private Label artistNameLabel;
     @FXML private Button reportButton;
     @FXML private ImageView downloadIcon;
-
-    // Charts
     @FXML private BarChart<String, Number> topAlbumChart;
-    @FXML private CategoryAxis topAlbumXAxis;
-    @FXML private NumberAxis topAlbumYAxis;
     @FXML private LineChart<String, Number> socialMediaChart;
-    @FXML private CategoryAxis socialMediaXAxis;
-    @FXML private NumberAxis socialMediaYAxis;
-
-    // Album Form
     @FXML private TextField albumNameField;
     @FXML private TextField albumSoldField;
     @FXML private Button addAlbumButton;
     @FXML private Button addAlbumSoldButton;
     @FXML private TextField addAlbumSoldAmountField;
-
-    // Social Media Form
     @FXML private ComboBox<String> socialMediaComboBox;
     @FXML private TextField followersField;
     @FXML private Button addSocialButton;
-
-    // Visitors Elements
     @FXML private Label visitorsCountLabel;
     @FXML private TextField visitorsField;
     @FXML private Button addVisitorsButton;
     @FXML private ImageView visitorsIconView;
-
-    // Sales Elements
     @FXML private Label salesAmountLabel;
     @FXML private TextField salesTodayField;
     @FXML private Button addSalesButton;
     @FXML private ImageView salesIconView;
-
-    // Album Sold Elements
     @FXML private Label albumsSoldCountLabel;
     @FXML private ImageView albumsSoldIconView;
-
-    // Social Popularity Elements
     @FXML private Label socialPopularityChangeLabel;
     @FXML private Label socialTotalFollowersLabel;
     @FXML private Label visitorsChangeLabel;
     @FXML private Label salesChangeLabel;
     @FXML private Label albumsSoldChangeLabel;
 
-    // --- Data Series for Charts ---
-    private XYChart.Series<String, Number> topAlbumSeries;
-    private XYChart.Series<String, Number> socialMediaSeries;
-
+    private final AlbumDAO albumDAO = new AlbumDAO();
+    private final SocialMediaDAO socialMediaDAO = new SocialMediaDAO();
+    private final StatsDAO statsDAO = new StatsDAO();
     private final Random random = new Random();
     private final List<String> barColors = Arrays.asList(
-        "#FFB74D", "#FFA726", "#EC407A", "#42A5F5",
-        "#AB47BC", "#81C784", "#4DB6AC", "#64B5F6", "#90A4AE"
+            "#FEB95A", "#E89B2F", "#223055", "#FFB7CA", "#28AEF3",
+            "#D7598B", "#A9DFD8", "#538EA5"
     );
 
     private int artistId;
@@ -121,45 +92,36 @@ public class LaporanKinerjaController {
         this.artistId = artistId;
         this.artistFullName = artistName;
         this.artistNameLabel.setText(artistName);
-        
-        // Update profile image
+
         try {
             String profileImageName = artistName.replaceAll("\\s+", "") + "Profile.png";
             Image profileImage = new Image("file:img/" + profileImageName);
-            if (!profileImage.isError()) {
-                artistAvatarView.setImage(profileImage);
-                downloadIcon.setImage(new Image("file:img/DownloadIcon.png"));
-            } else {
-                 System.err.println("Could not load profile image: " + profileImageName);
+            artistAvatarView.setImage(profileImage);
+            if (profileImage.isError()) {
+                artistAvatarView.setImage(new Image("file:img/DefaultArtist.png"));
             }
+            downloadIcon.setImage(new Image("file:img/DownloadIcon.png"));
         } catch (Exception e) {
-            System.err.println("Error creating image for: " + artistName);
+            System.err.println("Error loading image for " + artistName + ", using default.");
+            artistAvatarView.setImage(new Image("file:img/DefaultArtist.png"));
         }
 
-        // Reload all data for the newly set artist
         loadAllDataFromDatabase();
     }
-    
+
     @FXML
     public void initialize() {
-        // Initialize chart series first
-        topAlbumSeries = new XYChart.Series<>();
-        topAlbumChart.getData().add(topAlbumSeries);
-        socialMediaChart.getData().clear();
         socialMediaChart.setAnimated(true);
-
-        // Setup button actions
         reportButton.setOnAction(event -> handleReportButton());
         addAlbumButton.setOnAction(e -> handleAddAlbum());
         addAlbumSoldButton.setOnAction(e -> handleAddAlbumSold());
         addSocialButton.setOnAction(e -> handleAddSocial());
         addVisitorsButton.setOnAction(e -> handleAddVisitors());
         addSalesButton.setOnAction(e -> handleAddSales());
-        
+
         setupComboBox();
         initializeImageViews();
 
-        // If the view is loaded for an Artist, automatically set them.
         if ("Artist".equalsIgnoreCase(Main.getLoggedInUserRole())) {
             setArtist(Main.getLoggedInUserId(), Main.getLoggedInUserFullName());
         }
@@ -171,21 +133,12 @@ public class LaporanKinerjaController {
             salesIconView.setImage(new Image("file:img/MoneyIcon.png"));
             albumsSoldIconView.setImage(new Image("file:img/BagIcon.png"));
         } catch (Exception e) {
-            System.err.println("Error loading images: " + e.getMessage());
+            System.err.println("Error loading icon images: " + e.getMessage());
         }
     }
 
     private void setupComboBox() {
-        socialMediaComboBox.setItems(FXCollections.observableArrayList(
-            "Instagram", "X", "TikTok"
-        ));
-    }
-
-    private void setupButtonHandlers() {
-        addAlbumButton.setOnAction(e -> handleAddAlbum());
-        addSocialButton.setOnAction(e -> handleAddSocial());
-        addVisitorsButton.setOnAction(e -> handleAddVisitors());
-        addSalesButton.setOnAction(e -> handleAddSales());
+        socialMediaComboBox.setItems(FXCollections.observableArrayList("Instagram", "X", "TikTok"));
     }
 
     private void loadAllDataFromDatabase() {
@@ -200,424 +153,244 @@ public class LaporanKinerjaController {
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);
 
-        // Load and display today's stats directly
-        double todayVisitors = getTotalForDate("Visitors", "visitorsToday", today, this.artistId);
-        visitorsCountLabel.setText(String.format("%,.0f", todayVisitors));
-        double todaySales = getTotalForDate("Sales", "salesToday", today, this.artistId);
-        salesAmountLabel.setText(currencyFormat.format(todaySales));
-        double todayAlbums = getTotalForDate("AlbumSold", "albumSoldToday", today, this.artistId);
-        albumsSoldCountLabel.setText(String.format("%,.0f", todayAlbums));
+        try {
+            double todayVisitors = statsDAO.getVisitorsForDate(today, this.artistId);
+            visitorsCountLabel.setText(String.format("%,.0f", todayVisitors));
+            double todaySales = statsDAO.getSalesForDate(today, this.artistId);
+            salesAmountLabel.setText(currencyFormat.format(todaySales));
+            double todayAlbums = statsDAO.getAlbumsSoldForDate(today, this.artistId);
+            albumsSoldCountLabel.setText(String.format("%,.0f", todayAlbums));
 
-        // Calculate and display percentage change from yesterday
-        double yesterdayVisitors = getTotalForDate("Visitors", "visitorsToday", yesterday, this.artistId);
-        updateChangeLabel(visitorsChangeLabel, todayVisitors, yesterdayVisitors, false);
-        
-        double yesterdaySales = getTotalForDate("Sales", "salesToday", yesterday, this.artistId);
-        updateChangeLabel(salesChangeLabel, todaySales, yesterdaySales, true);
-        
-        double yesterdayAlbums = getTotalForDate("AlbumSold", "albumSoldToday", yesterday, this.artistId);
-        updateChangeLabel(albumsSoldChangeLabel, todayAlbums, yesterdayAlbums, false);
+            double yesterdayVisitors = statsDAO.getVisitorsForDate(yesterday, this.artistId);
+            updateChangeLabel(visitorsChangeLabel, todayVisitors, yesterdayVisitors, false);
+            double yesterdaySales = statsDAO.getSalesForDate(yesterday, this.artistId);
+            updateChangeLabel(salesChangeLabel, todaySales, yesterdaySales, true);
+            double yesterdayAlbums = statsDAO.getAlbumsSoldForDate(yesterday, this.artistId);
+            updateChangeLabel(albumsSoldChangeLabel, todayAlbums, yesterdayAlbums, false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadTopAlbumChart() {
-        topAlbumSeries.getData().clear();
-        String sql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ? ORDER BY sold DESC";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, artistId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    topAlbumSeries.getData().add(new XYChart.Data<>(rs.getString("albumName"), rs.getInt("sold")));
-                }
+        topAlbumChart.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        try {
+            List<Album> albums = albumDAO.getArtistAlbums(artistId, false);
+            for (Album album : albums) {
+                series.getData().add(new XYChart.Data<>(album.getName(), album.getSales()));
             }
-            styleBarChartNodes();
+            topAlbumChart.getData().add(series);
+            topAlbumChart.applyCss();
+            styleBarChart(series);
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void styleBarChart(XYChart.Series<String, Number> series) {
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            if (data.getNode() != null) {
+                String color = barColors.get(random.nextInt(barColors.size()));
+                data.getNode().setStyle("-fx-bar-fill: " + color + ";");
+            }
         }
     }
 
     private void loadSocialMediaChart() {
         socialMediaChart.getData().clear();
-        socialMediaChart.layout();
-
-        String sql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ? ORDER BY date ASC";
-
-        Map<String, XYChart.Series<String, Number>> seriesMap = new HashMap<>();
-        List<String> platforms = Arrays.asList("Instagram", "X", "TikTok");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
 
-        for(String platform : platforms) {
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName(platform);
-            seriesMap.put(platform, series);
-        }
+        try {
+            List<Popularity> popularityData = socialMediaDAO.getSocialMediaData(artistId);
+            Map<String, XYChart.Series<String, Number>> seriesMap = new HashMap<>();
 
-         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, artistId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while(rs.next()){
-                    String platform = rs.getString("socialMedia");
-                    int followers = rs.getInt("todayFollowers");
-                    LocalDate date = rs.getDate("date").toLocalDate();
-                    
-                    XYChart.Series<String, Number> series = seriesMap.get(platform);
-                    if (series != null) {
-                        series.getData().add(new XYChart.Data<>(date.format(formatter), followers));
-                    }
-                }
+            for (Popularity p : popularityData) {
+                seriesMap.computeIfAbsent(p.getPlatform(), k -> {
+                    XYChart.Series<String, Number> newSeries = new XYChart.Series<>();
+                    newSeries.setName(k);
+                    socialMediaChart.getData().add(newSeries);
+                    return newSeries;
+                }).getData().add(new XYChart.Data<>(p.getDate().format(formatter), p.getFollowers()));
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-        
-        for (String platform : platforms) {
-            socialMediaChart.getData().add(seriesMap.get(platform));
         }
     }
 
     private void loadSocialPopularityStats() {
-        double currentFollowers = getFollowerTotalForDate(LocalDate.now());
-        double lastMonthFollowers = getFollowerTotalForDate(LocalDate.now().minusMonths(1));
+        try {
+            Map<String, Double> followerStats = socialMediaDAO.getMostRecentFollowerStats(artistId);
+            double currentFollowers = followerStats.get("current");
+            double previousFollowers = followerStats.get("previous");
 
-        socialTotalFollowersLabel.setText(String.format("%,.0f Followers", currentFollowers));
-        updateChangeLabel(socialPopularityChangeLabel, currentFollowers, lastMonthFollowers, false);
-    }
-
-    private double getFollowerTotalForDate(LocalDate date) {
-        double totalFollowers = 0;
-        String sql = "SELECT SUM(todayFollowers) as total FROM Popularity WHERE idArtis = ? AND date <= ? " + 
-                     "AND (socialMedia, date) IN " +
-                     "(SELECT socialMedia, MAX(date) FROM Popularity WHERE idArtis = ? AND date <= ? GROUP BY socialMedia)";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, artistId);
-            pstmt.setDate(2, java.sql.Date.valueOf(date));
-            pstmt.setInt(3, artistId);
-            pstmt.setDate(4, java.sql.Date.valueOf(date));
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    totalFollowers = rs.getDouble("total");
-                }
-            }
+            socialTotalFollowersLabel.setText(String.format("%,.0f", currentFollowers));
+            updateChangeLabel(socialPopularityChangeLabel, currentFollowers, previousFollowers, false);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return totalFollowers;
     }
 
-    private double getTotalForDate(String tableName, String columnName, LocalDate date, int artistId) {
-        String sql = String.format("SELECT SUM(%s) AS total FROM %s WHERE date = ? AND idArtis = ?", columnName, tableName);
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setDate(1, java.sql.Date.valueOf(date));
-            pstmt.setInt(2, artistId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getDouble("total");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-    
     private void updateChangeLabel(Label label, double current, double previous, boolean isCurrency) {
         if (previous == 0) {
-            if (current > 0) label.setText("+100%"); // Infinite growth
-            else label.setText("N/A");
+            label.setText(current > 0 ? "+100%" : "N/A");
             return;
         }
         double change = ((current - previous) / previous) * 100;
-        String prefix = change >= 0 ? "+" : "";
-        label.setText(String.format("%s%.0f%%", prefix, change));
-    }
-
-    private List<String> getAllAlbumNamesForArtist(int artistId) {
-        List<String> albumNames = new ArrayList<>();
-        String sql = "SELECT DISTINCT albumName FROM TopAlbum WHERE idArtis = ? ORDER BY albumName";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, artistId);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                albumNames.add(rs.getString("albumName"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return albumNames;
+        label.setText(String.format("%s%.0f%%", change >= 0 ? "+" : "", change));
     }
 
     private void handleAddAlbum() {
+        String albumName = albumNameField.getText();
+        String soldText = albumSoldField.getText();
+        if (albumName.isEmpty() || soldText.isEmpty()) {
+            showAlert("Error", "Album name and initial sold count cannot be empty.");
+            return;
+        }
         try {
-            String name = albumNameField.getText();
-            String soldText = albumSoldField.getText();
-
-            if (name == null || name.trim().isEmpty()) {
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Input Error");
-                alert.setHeaderText("Album Name is required");
-                alert.setContentText("Please enter a name for the new album.");
-                alert.showAndWait();
-                return;
-            }
-            if (soldText == null || soldText.trim().isEmpty()) {
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Input Error");
-                alert.setHeaderText("Album Sold is required");
-                alert.setContentText("Please enter the number of albums sold.");
-                alert.showAndWait();
-                return;
-            }
-
             int sold = Integer.parseInt(soldText);
-
-            try (Connection conn = DatabaseManager.getConnection()) {
-                String selectSql = "SELECT albumName FROM TopAlbum WHERE albumName = ? AND idArtis = ?";
-                try (PreparedStatement selectPstmt = conn.prepareStatement(selectSql)) {
-                    selectPstmt.setString(1, name);
-                    selectPstmt.setInt(2, artistId);
-                    try (ResultSet rs = selectPstmt.executeQuery()) {
-                        if (rs.next()) {
-                            Alert alert = new Alert(AlertType.ERROR);
-                            alert.setTitle("Duplicate Album");
-                            alert.setHeaderText("Album already exists.");
-                            alert.setContentText("The album '" + name + "' already exists. To add more sales, use the 'Add Album Sold' function.");
-                            alert.showAndWait();
-                            return;
-                        }
-                    }
-                }
-
-                String insertSql = "INSERT INTO TopAlbum (albumName, sold, date, idArtis) VALUES (?, ?, ?, ?)";
-                try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
-                    insertPstmt.setString(1, name);
-                    insertPstmt.setInt(2, sold);
-                    insertPstmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
-                    insertPstmt.setInt(4, artistId);
-                    insertPstmt.executeUpdate();
-                }
-                
-                String albumSoldSql = "INSERT INTO AlbumSold (idArtis, date, albumSoldToday) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE albumSoldToday = albumSoldToday + VALUES(albumSoldToday)";
-                try (PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
-                     pstmt.setInt(1, artistId);
-                     pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-                     pstmt.setInt(3, sold);
-                     pstmt.executeUpdate();
-                }
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Database Error");
-                alert.setHeaderText("Could not save new album.");
-                alert.setContentText("An unexpected database error occurred.");
-                alert.showAndWait();
-            }
-
+            albumDAO.addAlbum(albumName, sold, artistId);
+            showSuccessMessage();
+            loadTopAlbumChart();
             albumNameField.clear();
             albumSoldField.clear();
-            showSuccessMessage();
-            loadAllDataFromDatabase();
-
-        } catch (NumberFormatException ex) {
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle("Input Error");
-            alert.setHeaderText("Invalid number format");
-            alert.setContentText("Please enter a valid number for albums sold.");
-            alert.showAndWait();
+        } catch (NumberFormatException e) {
+            showAlert("Error", "Initial sold must be a number.");
+        } catch (SQLException e) {
+            showAlert("Database Error", "Could not add album: " + e.getMessage());
         }
     }
 
     private void handleAddAlbumSold() {
-        try {
-            if (addAlbumSoldAmountField.getText() == null || addAlbumSoldAmountField.getText().trim().isEmpty()) {
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Input Error");
-                alert.setHeaderText("Album Sold field is empty");
-                alert.setContentText("Please enter the number of albums sold to add.");
-                alert.showAndWait();
-                return;
-            }
-            int sold = Integer.parseInt(addAlbumSoldAmountField.getText());
+        String amountText = addAlbumSoldAmountField.getText();
+        if (amountText.isEmpty()) {
+            showAlert("Error", "Amount cannot be empty.");
+            return;
+        }
 
-            List<String> albumNames = getAllAlbumNamesForArtist(artistId);
+        try {
+            List<String> albumNames = albumDAO.getAllAlbumNamesForArtist(artistId);
             if (albumNames.isEmpty()) {
-                Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setTitle("No Albums Found");
-                alert.setHeaderText("There are no albums to add sales to.");
-                alert.setContentText("Please create a new album first using the 'Add New Album' form.");
-                alert.showAndWait();
+                showAlert("No Albums", "This artist has no albums to update.");
                 return;
             }
 
             ChoiceDialog<String> dialog = new ChoiceDialog<>(albumNames.get(0), albumNames);
-            dialog.setTitle("Select Album");
-            dialog.setHeaderText("Select an album to add sales to.");
-            dialog.setContentText("Choose album:");
-            
+            dialog.setTitle("Add Album Sales");
+            dialog.setHeaderText("Select an album to update its sales.");
+            dialog.setContentText("Album:");
+
             Optional<String> result = dialog.showAndWait();
-            String nameToUpdate;
-            if (result.isPresent()){
-                nameToUpdate = result.get();
-            } else {
-                return; // User cancelled
-            }
-
-            try (Connection conn = DatabaseManager.getConnection()) {
-                String updateSql = "UPDATE TopAlbum SET sold = sold + ?, date = ? WHERE albumName = ? AND idArtis = ?";
-                try (PreparedStatement updatePstmt = conn.prepareStatement(updateSql)) {
-                    updatePstmt.setInt(1, sold);
-                    updatePstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-                    updatePstmt.setString(3, nameToUpdate);
-                    updatePstmt.setInt(4, artistId);
-                    updatePstmt.executeUpdate();
+            result.ifPresent(selectedAlbum -> {
+                try {
+                    int amount = Integer.parseInt(amountText);
+                    albumDAO.addAlbumSold(selectedAlbum, amount, artistId);
+                    statsDAO.addAlbumsSold(amount, artistId);
+                    showSuccessMessage();
+                    loadAllDataFromDatabase();
+                    addAlbumSoldAmountField.clear();
+                } catch (NumberFormatException e) {
+                    showAlert("Error", "Amount must be a number.");
+                } catch (SQLException e) {
+                    showAlert("Database Error", "Could not update album sales: " + e.getMessage());
                 }
-
-                String albumSoldSql = "INSERT INTO AlbumSold (idArtis, date, albumSoldToday) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE albumSoldToday = albumSoldToday + VALUES(albumSoldToday)";
-                try (PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
-                     pstmt.setInt(1, artistId);
-                     pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-                     pstmt.setInt(3, sold);
-                     pstmt.executeUpdate();
-                }
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Database Error");
-                alert.setHeaderText("Could not update album sales.");
-                alert.setContentText("An unexpected database error occurred.");
-                alert.showAndWait();
-            }
-
-            addAlbumSoldAmountField.clear();
-            showSuccessMessage();
-            loadAllDataFromDatabase();
-
-        } catch (NumberFormatException e) {
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle("Input Error");
-            alert.setHeaderText("Invalid number format");
-            alert.setContentText("Please enter a valid number for albums sold.");
-            alert.showAndWait();
+            });
+        } catch (SQLException e) {
+            showAlert("Database Error", "Could not retrieve album list: " + e.getMessage());
         }
     }
 
     private void handleAddSocial() {
+        String platform = socialMediaComboBox.getValue();
+        String followersText = followersField.getText();
+        if (platform == null || followersText.isEmpty()) {
+            showAlert("Error", "Social media platform and followers count cannot be empty.");
+            return;
+        }
         try {
-            int followers = Integer.parseInt(followersField.getText());
-            String platform = socialMediaComboBox.getValue();
-            if (platform == null) return;
-
-            String sql = "INSERT INTO Popularity (idArtis, date, socialMedia, todayFollowers) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE todayFollowers = todayFollowers + VALUES(todayFollowers)";
-            try (Connection conn = DatabaseManager.getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, artistId);
-                pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-                pstmt.setString(3, platform);
-                pstmt.setInt(4, followers);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            followersField.clear();
-            socialMediaComboBox.getSelectionModel().clearSelection();
+            int followers = Integer.parseInt(followersText);
+            socialMediaDAO.addSocialMediaData(platform, followers, artistId);
             showSuccessMessage();
-            loadAllDataFromDatabase(); // Refresh UI
-        } catch (NumberFormatException ex) {
-            System.err.println("Invalid number format for followers.");
+            loadSocialMediaChart();
+            loadSocialPopularityStats();
+            followersField.clear();
+        } catch (NumberFormatException e) {
+            showAlert("Error", "Followers must be a number.");
+        } catch (SQLException e) {
+            showAlert("Database Error", "Could not add social media data: " + e.getMessage());
         }
     }
 
     private void handleAddVisitors() {
+        String visitorsText = visitorsField.getText();
+        if (visitorsText.isEmpty()) {
+            showAlert("Error", "Visitors count cannot be empty.");
+            return;
+        }
         try {
-            int newVisitors = Integer.parseInt(visitorsField.getText());
-
-            String sql = "INSERT INTO Visitors (idArtis, date, visitorsToday) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE visitorsToday = visitorsToday + VALUES(visitorsToday)";
-            try (Connection conn = DatabaseManager.getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, artistId);
-                pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-                pstmt.setInt(3, newVisitors);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            
-            visitorsField.clear();
+            int count = Integer.parseInt(visitorsText);
+            statsDAO.addVisitors(count, artistId);
             showSuccessMessage();
-            loadAllDataFromDatabase(); // Refresh UI
-        } catch (NumberFormatException ex) {
-            System.err.println("Invalid number format for visitors.");
+            loadStats();
+            visitorsField.clear();
+        } catch (NumberFormatException e) {
+            showAlert("Error", "Visitors must be a number.");
+        } catch (SQLException e) {
+            showAlert("Database Error", "Could not add visitors: " + e.getMessage());
         }
     }
 
     private void handleAddSales() {
-        try {
-            double salesToday = Double.parseDouble(salesTodayField.getText());
-
-            String sql = "INSERT INTO Sales (idArtis, date, salesToday) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE salesToday = salesToday + VALUES(salesToday)";
-            try (Connection conn = DatabaseManager.getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, artistId);
-                pstmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-                pstmt.setDouble(3, salesToday);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            
-            salesTodayField.clear();
-            showSuccessMessage();
-            loadAllDataFromDatabase(); // Refresh UI
-        } catch (NumberFormatException ex) {
-            System.err.println("Invalid number format for sales.");
+        String salesText = salesTodayField.getText();
+        if (salesText.isEmpty()) {
+            showAlert("Error", "Sales amount cannot be empty.");
+            return;
         }
-    }
-
-    private void styleBarChartNodes() {
-        // Must be called after data is added
-        for (int i = 0; i < topAlbumSeries.getData().size(); i++) {
-            XYChart.Data<String, Number> data = topAlbumSeries.getData().get(i);
-            if (data.getNode() != null) {
-                 data.getNode().setStyle("-fx-bar-fill: " + barColors.get(i % barColors.size()) + ";");
-            } else {
-                // If the node is not yet created, we can't style it directly.
-                // We rely on the fact that this is called after new data is added and rendered.
-            }
+        try {
+            int amount = Integer.parseInt(salesText);
+            statsDAO.addSales(amount, artistId);
+            showSuccessMessage();
+            loadStats();
+            salesTodayField.clear();
+        } catch (NumberFormatException e) {
+            showAlert("Error", "Sales must be a number.");
+        } catch (SQLException e) {
+            showAlert("Database Error", "Could not add sales: " + e.getMessage());
         }
     }
 
     private void showSuccessMessage() {
+        successMessageLabel.setText("Data added successfully!");
         successMessageLabel.setVisible(true);
-        successMessageLabel.setManaged(true);
-        FadeTransition fadeIn = new FadeTransition(Duration.seconds(0.5), successMessageLabel);
-        fadeIn.setFromValue(0);
-        fadeIn.setToValue(1);
-        
-        PauseTransition pause = new PauseTransition(Duration.seconds(2));
-        
-        FadeTransition fadeOut = new FadeTransition(Duration.seconds(0.5), successMessageLabel);
-        fadeOut.setFromValue(1);
-        fadeOut.setToValue(0);
-        fadeOut.setOnFinished(event -> {
-            successMessageLabel.setVisible(false);
-            successMessageLabel.setManaged(false);
-        });
-
-        fadeIn.setOnFinished(event -> pause.play());
-        pause.setOnFinished(event -> fadeOut.play());
-        fadeIn.play();
+        FadeTransition ft = new FadeTransition(Duration.millis(200), successMessageLabel);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+        PauseTransition pt = new PauseTransition(Duration.seconds(2));
+        pt.setOnFinished(e -> successMessageLabel.setVisible(false));
+        pt.play();
     }
 
     @FXML
     private void handleReportButton() {
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("PDF", "PDF", "CSV");
+        dialog.setTitle("Export Report");
+        dialog.setHeaderText("Choose the format for your report.");
+        dialog.setContentText("Format:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(format -> {
+            if ("PDF".equals(format)) {
+                exportAsPdf();
+            } else if ("CSV".equals(format)) {
+                exportAsCsv();
+            }
+        });
+    }
+
+    private void exportAsPdf() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Report");
+        fileChooser.setTitle("Save PDF Report");
         fileChooser.setInitialFileName(artistFullName.replaceAll("\\s+", "_") + "_Performance_Report.pdf");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
         File file = fileChooser.showSaveDialog(reportButton.getScene().getWindow());
@@ -634,113 +407,88 @@ public class LaporanKinerjaController {
                     contentStream.showText("Performance Report for " + artistFullName);
                     contentStream.endText();
 
-                    contentStream.beginText();
-                    contentStream.setFont(PDType1Font.HELVETICA, 12);
-                    contentStream.newLineAtOffset(50, 700);
-
-                    // Fetch and write Top Album data
-                    contentStream.showText("Top Albums:");
-                    contentStream.newLineAtOffset(0, -15);
-                    String topAlbumSql = "SELECT albumName, sold FROM TopAlbum WHERE idArtis = ?";
-                    try (Connection conn = DatabaseManager.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(topAlbumSql)) {
-                        pstmt.setInt(1, artistId);
-                        ResultSet rs = pstmt.executeQuery();
-                        while (rs.next()) {
-                            String line = "  - " + rs.getString("albumName") + " (" + rs.getInt("sold") + " sold)";
-                            contentStream.showText(line);
-                            contentStream.newLineAtOffset(0, -15);
-                        }
-                    }
-                    contentStream.newLineAtOffset(0, -15);
-
-                    // Fetch and write Popularity data
-                    contentStream.showText("Social Media Popularity:");
-                    contentStream.newLineAtOffset(0, -15);
-                    String popularitySql = "SELECT socialMedia, todayFollowers, date FROM Popularity WHERE idArtis = ?";
-                    try (Connection conn = DatabaseManager.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(popularitySql)) {
-                        pstmt.setInt(1, artistId);
-                        ResultSet rs = pstmt.executeQuery();
-                        while (rs.next()) {
-                            String line = "  - " + rs.getString("socialMedia") + ": " + rs.getInt("todayFollowers") + " followers on " + rs.getDate("date").toLocalDate();
-                            contentStream.showText(line);
-                            contentStream.newLineAtOffset(0, -15);
-                        }
-                    }
-                    contentStream.newLineAtOffset(0, -15);
-
-                    // Fetch and write Sales data
-                    contentStream.showText("Sales:");
-                    contentStream.newLineAtOffset(0, -15);
-                    String salesSql = "SELECT salesToday, date FROM Sales WHERE idArtis = ?";
-                    try (Connection conn = DatabaseManager.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(salesSql)) {
-                        pstmt.setInt(1, artistId);
-                        ResultSet rs = pstmt.executeQuery();
-                        while (rs.next()) {
-                            String line = "  - " + rs.getDouble("salesToday") + " on " + rs.getDate("date").toLocalDate();
-                            contentStream.showText(line);
-                            contentStream.newLineAtOffset(0, -15);
-                        }
-                    }
-                    contentStream.newLineAtOffset(0, -15);
-
-                    // Fetch and write Album Sold data
-                    contentStream.showText("Albums Sold:");
-                    contentStream.newLineAtOffset(0, -15);
-                    String albumSoldSql = "SELECT albumSoldToday, date FROM AlbumSold WHERE idArtis = ?";
-                    try (Connection conn = DatabaseManager.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(albumSoldSql)) {
-                        pstmt.setInt(1, artistId);
-                        ResultSet rs = pstmt.executeQuery();
-                        while (rs.next()) {
-                            String line = "  - " + rs.getInt("albumSoldToday") + " on " + rs.getDate("date").toLocalDate();
-                            contentStream.showText(line);
-                            contentStream.newLineAtOffset(0, -15);
-                        }
-                    }
-                    contentStream.newLineAtOffset(0, -15);
-
-                    // Fetch and write Visitors data
-                    contentStream.showText("Visitors:");
-                    contentStream.newLineAtOffset(0, -15);
-                    String visitorsSql = "SELECT visitorsToday, date FROM Visitors WHERE idArtis = ?";
-                    try (Connection conn = DatabaseManager.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(visitorsSql)) {
-                        pstmt.setInt(1, artistId);
-                        ResultSet rs = pstmt.executeQuery();
-                        while (rs.next()) {
-                            String line = "  - " + rs.getInt("visitorsToday") + " on " + rs.getDate("date").toLocalDate();
-                            contentStream.showText(line);
-                            contentStream.newLineAtOffset(0, -15);
-                        }
-                    }
-                    contentStream.newLineAtOffset(0, -15);
-
-                    // Fetch and write Fans Response data
-                    contentStream.showText("Fans Response:");
-                    contentStream.newLineAtOffset(0, -15);
-                    String fansResponseSql = "SELECT source, comment, category, timestamp FROM FansResponse WHERE idArtis = ?";
-                    try (Connection conn = DatabaseManager.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(fansResponseSql)) {
-                        pstmt.setInt(1, artistId);
-                        ResultSet rs = pstmt.executeQuery();
-                        while (rs.next()) {
-                            String line = "  - " + rs.getString("source") + " (" + rs.getString("category") + "): " + rs.getString("comment") + " on " + rs.getTimestamp("timestamp").toLocalDateTime().toLocalDate();
-                            contentStream.showText(line);
-                            contentStream.newLineAtOffset(0, -15);
-                        }
-                    }
-
-                    contentStream.endText();
+                    addPdfContent(contentStream);
                 }
-
                 document.save(file);
+                showAlert("Success", "PDF report saved successfully.");
             } catch (IOException | SQLException e) {
-                e.printStackTrace();
+                showAlert("Error", "Failed to save PDF report: " + e.getMessage());
             }
         }
+    }
+
+    private void addPdfContent(PDPageContentStream contentStream) throws IOException, SQLException {
+        contentStream.setFont(PDType1Font.HELVETICA, 12);
+        float y = 700;
+
+        contentStream.beginText();
+        contentStream.newLineAtOffset(50, y);
+        contentStream.showText("Total Visitors: " + visitorsCountLabel.getText());
+        contentStream.newLineAtOffset(0, -20);
+        contentStream.showText("Total Sales: " + salesAmountLabel.getText());
+        contentStream.newLineAtOffset(0, -20);
+        contentStream.showText("Albums Sold: " + albumsSoldCountLabel.getText());
+        contentStream.newLineAtOffset(0, -20);
+        contentStream.showText("Total Followers: " + socialTotalFollowersLabel.getText());
+        contentStream.endText();
+        y -= 100;
+
+        contentStream.beginText();
+        contentStream.newLineAtOffset(50, y);
+        contentStream.showText("Top Albums:");
+        contentStream.endText();
+        y -= 20;
+        List<Album> albums = albumDAO.getArtistAlbums(artistId, false);
+        for (Album album : albums) {
+            contentStream.beginText();
+            contentStream.newLineAtOffset(60, y);
+            contentStream.showText("- " + album.getName() + ": " + album.getSales() + " sold");
+            contentStream.endText();
+            y -= 20;
+        }
+    }
+
+    private void exportAsCsv() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save CSV Report");
+        fileChooser.setInitialFileName(artistFullName.replaceAll("\\s+", "_") + "_Performance_Report.csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = fileChooser.showSaveDialog(reportButton.getScene().getWindow());
+
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.append("Metric,Value\n");
+                writer.append("Total Visitors,").append(visitorsCountLabel.getText()).append("\n");
+                writer.append("Total Sales,").append(salesAmountLabel.getText()).append("\n");
+                writer.append("Albums Sold,").append(albumsSoldCountLabel.getText()).append("\n");
+                writer.append("Total Followers,").append(socialTotalFollowersLabel.getText()).append("\n\n");
+
+                writer.append("Album,Sales\n");
+                List<Album> albums = albumDAO.getArtistAlbums(artistId, false);
+                for (Album album : albums) {
+                    writer.append(album.getName()).append(",").append(String.valueOf(album.getSales())).append("\n");
+                }
+                writer.append("\n");
+
+                writer.append("Platform,Date,Followers\n");
+                List<Popularity> socialData = socialMediaDAO.getSocialMediaData(artistId);
+                for (Popularity p : socialData) {
+                    writer.append(p.getPlatform()).append(",").append(p.getDate().toString()).append(",").append(String.valueOf(p.getFollowers())).append("\n");
+                }
+
+                showAlert("Success", "CSV report saved successfully.");
+            } catch (IOException | SQLException e) {
+                showAlert("Error", "Failed to save CSV report: " + e.getMessage());
+            }
+        }
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
 

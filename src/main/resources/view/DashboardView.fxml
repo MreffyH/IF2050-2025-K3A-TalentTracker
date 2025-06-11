@@ -20,7 +20,7 @@
 
 <!-- Main BorderPane for the Dashboard -->
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="1200.0" style="-fx-background-color: #ffc0cb;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.DashboardController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="1200.0" style="-fx-background-color: #FFB7CA;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.DashboardController">
    <left>
       <!-- Sidebar content remains the same -->
       <VBox prefWidth="280.0" spacing="15.0" style="-fx-background-color: #FFB7CA;" BorderPane.alignment="CENTER">
@@ -58,7 +58,7 @@
             </VBox>
          </children>
          <BorderPane.margin>
-            <Insets top="20.0" />
+            <Insets top="20.0" right="20.0" />
          </BorderPane.margin>
       </VBox>
    </left>

@@ -1,7 +1,8 @@
 package com.talenttracker.controller;
 
-import com.talenttracker.DatabaseManager;
+import com.talenttracker.dao.UserDAO;
 import java.io.IOException;
+import java.sql.SQLException;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -46,27 +47,24 @@ public class RegisterController {
     @FXML
     private Hyperlink loginLink;
 
+    private final UserDAO userDAO = new UserDAO();
+
     @FXML
     public void initialize() {
-        // Bind the visibility of the password fields to the checkbox
         visiblePasswordField.visibleProperty().bind(showPasswordCheckBox.selectedProperty());
         passwordField.visibleProperty().bind(showPasswordCheckBox.selectedProperty().not());
         
-        // Bind the managed property as well so they don't take up space when hidden
         visiblePasswordField.managedProperty().bind(showPasswordCheckBox.selectedProperty());
         passwordField.managedProperty().bind(showPasswordCheckBox.selectedProperty().not());
 
-        // Bind the text content of both fields together
         visiblePasswordField.textProperty().bindBidirectional(passwordField.textProperty());
 
-        // Add listeners to all fields to check for input
         firstNameField.textProperty().addListener((obs, oldVal, newVal) -> updateButtonState());
         lastNameField.textProperty().addListener((obs, oldVal, newVal) -> updateButtonState());
         emailField.textProperty().addListener((obs, oldVal, newVal) -> updateButtonState());
         passwordField.textProperty().addListener((obs, oldVal, newVal) -> updateButtonState());
         roleComboBox.valueProperty().addListener((obs, oldVal, newVal) -> updateButtonState());
 
-        // Set the initial state of the button
         updateButtonState();
 
         createAccountButton.setOnAction(event -> {
@@ -100,19 +98,24 @@ public class RegisterController {
         String password = passwordField.getText();
         String role = roleComboBox.getValue();
 
-        boolean success = DatabaseManager.addUser(fullName, email, password, role);
+        try {
+            boolean success = userDAO.addUser(fullName, email, password, role);
 
-        if (success) {
-            showAlert(AlertType.INFORMATION, "Registration Successful!", "You can now log in with your new account.")
-                .ifPresent(response -> {
-                    try {
-                        openLoginScreen();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-        } else {
-            showAlert(AlertType.ERROR, "Registration Failed", "Could not create account. The email might already be in use.");
+            if (success) {
+                showAlert(AlertType.INFORMATION, "Registration Successful!", "You can now log in with your new account.")
+                    .ifPresent(response -> {
+                        try {
+                            openLoginScreen();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+            } else {
+                showAlert(AlertType.ERROR, "Registration Failed", "Could not create account. The email might already be in use.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(AlertType.ERROR, "Database Error", "An error occurred during registration. Please try again.");
         }
     }
 

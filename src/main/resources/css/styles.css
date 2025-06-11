@@ -72,11 +72,6 @@
     -fx-background-color: #FFE6F0;
 }
 
-.calendar-date.today {
-    -fx-background-color: #223055;
-    -fx-text-fill: white;
-}
-
 .calendar-date.selected {
     -fx-background-color: #FFB7CA;
     -fx-text-fill: #223055;

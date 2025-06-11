@@ -35,7 +35,6 @@ public class HeaderController {
     @FXML
     public void initialize() {
         try {
-            // Load logo image
             String logoPath = Paths.get(System.getProperty("user.dir"), "img", "LogoSN.png").toString();
             File logoFile = new File(logoPath);
             if (logoFile.exists()) {
@@ -43,17 +42,14 @@ public class HeaderController {
                 logoImage.setImage(logo);
             }
             
-            // Load profile image
             String profilePath = Paths.get(System.getProperty("user.dir"), "img", "ProfileIcon.png").toString();
             File profileFile = new File(profilePath);
             if (profileFile.exists()) {
                 Image profile = new Image(profileFile.toURI().toString());
                 profileImage.setImage(profile);
-                // Make profile image circular
                 profileImage.setClip(new Circle(20, 20, 20));
             }
             
-            // Set user info
             String userRole = Main.getLoggedInUserRole();
             nameLabel.setText(Main.getLoggedInUserFullName());
             roleLabel.setText(userRole);
@@ -94,12 +90,12 @@ public class HeaderController {
     
     @FXML
     public void navigateToProject() {
-        // Navigation will be implemented later
+        
     }
     
     @FXML
     public void navigateToAttendance() {
-        // Navigation will be implemented later
+        
     }
     
     @FXML
