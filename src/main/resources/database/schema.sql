@@ -258,7 +258,7 @@ BEGIN
         WHERE idStaff = NEW.idStaff
           AND MONTH(date) = MONTH(NEW.date)
           AND YEAR(date) = YEAR(NEW.date)
-          AND attended = TRUE;
+          AND attendance = TRUE;
 
         IF jumlah_hari > 0 THEN
             SET persen = (hadir_count / jumlah_hari) * 100;
