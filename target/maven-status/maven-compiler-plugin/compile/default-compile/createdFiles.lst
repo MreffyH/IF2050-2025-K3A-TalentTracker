@@ -1,5 +1,5 @@
-com\talenttracker\view\ProjectPage$1.class
-com\talenttracker\controller\ProjectController.class
-com\talenttracker\Main.class
-com\talenttracker\view\ProjectPage.class
-com\talenttracker\controller\ProjectController$1.class
+com\example\app\controller\MainController.class
+com\example\app\controller\AddProjectController.class
+com\example\app\model\Project.class
+com\example\app\model\Staff.class
+com\example\app\Main.class
