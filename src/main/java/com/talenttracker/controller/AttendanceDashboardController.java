@@ -1,4 +1,4 @@
-package com.example.controller;
+package com.talenttracker.controller;
 
 import java.net.URL;
 import java.sql.Date;
@@ -10,11 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import com.example.dao.AttendanceDAO;
-import com.example.dao.UserDAO;
-import com.example.model.Attendance;
-import com.example.model.User;
-import com.example.util.SessionManager;
+import com.talenttracker.dao.UserDAO;
+import com.talenttracker.model.User;
+import com.talenttracker.dao.AttendanceDAO;
+import com.talenttracker.model.Attendance;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -31,6 +30,9 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Pagination;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -42,26 +44,32 @@ import javafx.util.Duration;
 
 public class AttendanceDashboardController implements Initializable {
 
-    // FXML Fields
-    @FXML private VBox attendanceRecordsVBox;
+    // FXML Fields - Common
     @FXML private Label digitalTimeLabel;
+    @FXML private Label userNameLabel;
+    @FXML private Label userRoleLabel;
+
+    // FXML Fields - Staff View
+    @FXML private VBox attendanceRecordsVBox;
     @FXML private Label salaryAmountLabel;
     @FXML private Button checkButton;
     @FXML private Label onTimePercentageLabel;
     @FXML private Label latePercentageLabel;
-    @FXML private Label userNameLabel;
-    @FXML private Label userRoleLabel;
     @FXML private Canvas analogClockCanvas;
     @FXML private Label workingTimeLabel;
     @FXML private Button viewSalaryButton;
     @FXML private LineChart<String, Number> onTimeLineChart;
     @FXML private LineChart<String, Number> lateLineChart;
-    
-    // FIXED: Added missing axis references
     @FXML private CategoryAxis onTimeXAxis;
     @FXML private CategoryAxis lateXAxis;
     @FXML private NumberAxis onTimeYAxis;
     @FXML private NumberAxis lateYAxis;
+
+    // FXML Fields - CEO View
+    @FXML private TextField searchField;
+    @FXML private Button searchButton;
+    @FXML private VBox staffTableContent;
+    @FXML private Pagination tablePagination;
 
     // DAOs
     private final AttendanceDAO attendanceDAO = new AttendanceDAO();
@@ -86,28 +94,50 @@ public class AttendanceDashboardController implements Initializable {
     private Attendance currentAttendanceRecord;
     private LocalTime testAutoCheckoutTime; // For testing dynamic checkout
 
+    public void setUser(User user) {
+        this.currentUser = user;
+        // This check is important
+        if (this.currentUser != null) {
+            if (userNameLabel != null) userNameLabel.setText(currentUser.getFullName());
+            if (userRoleLabel != null) userRoleLabel.setText(currentUser.getRole());
+            
+            if ("CEO".equalsIgnoreCase(currentUser.getRole())) {
+                // Load CEO-specific data
+                loadAllStaffData();
+            } else {
+                // Load Staff-specific data
+                refreshDashboard();
+                restoreCheckInState();
+            }
+        }
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        currentUser = SessionManager.getInstance().getLoggedInUser();
-        if (currentUser == null) {
-            System.err.println("No user logged in. Cannot initialize staff dashboard.");
-            return;
+        // Initialization that does not depend on the user role
+        if (onTimeLineChart != null) {
+            configureChartAxes();
         }
-
-        // Set user-specific info
-        userNameLabel.setText(currentUser.getFullName());
-        userRoleLabel.setText(currentUser.getRole());
-        
-        // FIXED: Configure chart axes properly
-        configureChartAxes();
-
-        initializeClock();
-        refreshDashboard();
-        restoreCheckInState();
+        if (digitalTimeLabel != null) {
+            initializeClock();
+        }
+        if (searchButton != null) {
+            searchButton.setOnAction(event -> handleSearch());
+        }
     }
     
-    // FIXED: New method to configure chart axes
+    private void handleSearch() {
+        // Implement search logic for CEO view
+        String searchText = searchField.getText();
+        // ... filter staff list based on search ...
+    }
+
+    private void loadAllStaffData() {
+        // Implement data loading for CEO view
+    }
+
     private void configureChartAxes() {
+        if (onTimeYAxis == null || lateYAxis == null || onTimeXAxis == null || lateXAxis == null) return;
         // Configure Y-axes for 0-100 percentage range
         onTimeYAxis.setLowerBound(0);
         onTimeYAxis.setUpperBound(100);
@@ -125,13 +155,16 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     private void refreshDashboard() {
-        loadAndDisplayAttendance();
-        updateSalaryDisplay();
-        updateStats();
-        updateLineCharts();
+        if (currentUser.getRole().equalsIgnoreCase("Staff")) {
+            loadAndDisplayAttendance();
+            updateSalaryDisplay();
+            updateStats();
+            updateLineCharts();
+        }
     }
 
     private void updateStats() {
+        if (onTimePercentageLabel == null || latePercentageLabel == null) return;
         try {
             List<Attendance> userAttendance = attendanceDAO.getAttendanceByUserId(currentUser.getId());
             if (userAttendance.isEmpty()) {
@@ -156,6 +189,7 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     private void loadAndDisplayAttendance() {
+        if (attendanceRecordsVBox == null) return;
         attendanceRecordsVBox.getChildren().clear();
         try {
             List<Attendance> attendanceRecords = attendanceDAO.getAttendanceByUserId(currentUser.getId());
@@ -197,6 +231,7 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     private void updateSalaryDisplay() {
+        if (salaryAmountLabel == null) return;
         if (isSalaryVisible) {
             salaryAmountLabel.setText("IDR " + String.format("%,d", currentUser.getSalary()));
         } else {
@@ -205,6 +240,7 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     private void restoreCheckInState() {
+        if (checkButton == null) return;
         try {
             currentAttendanceRecord = attendanceDAO.getLatestUnfinishedAttendance(currentUser.getId());
             if (currentAttendanceRecord != null) {
@@ -223,6 +259,7 @@ public class AttendanceDashboardController implements Initializable {
 
     @FXML
     private void toggleCheckIn() {
+        if (checkButton == null) return;
         if (currentAttendanceRecord == null) {
             // --- CHECK IN (TEST MODE) ---
             try {
@@ -231,9 +268,6 @@ public class AttendanceDashboardController implements Initializable {
                     checkButton.setText("Checked In Today");
                     checkButton.setDisable(true);
                     System.out.println("User has already checked in today. Cannot check in again.");
-                    // Optionally, show an alert to the user
-                    // Alert alert = new Alert(Alert.AlertType.WARNING, "You have already checked in today.");
-                    // alert.showAndWait();
                     return;
                 }
 
@@ -297,6 +331,7 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     private void initializeClock() {
+        if (digitalTimeLabel == null || analogClockCanvas == null) return;
         Timeline clockTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             updateDigitalClock();
             drawAnalogClock();
@@ -307,11 +342,13 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     private void updateDigitalClock() {
+        if (digitalTimeLabel == null) return;
         LocalTime now = LocalTime.now();
         digitalTimeLabel.setText(now.format(DateTimeFormatter.ofPattern("hh : mm : ss a")));
     }
     
     private void drawAnalogClock() {
+        if (analogClockCanvas == null) return;
         GraphicsContext gc = analogClockCanvas.getGraphicsContext2D();
         double width = analogClockCanvas.getWidth();
         double height = analogClockCanvas.getHeight();
@@ -371,6 +408,7 @@ public class AttendanceDashboardController implements Initializable {
 
     // FIXED: Complete rewrite of updateLineCharts method
     private void updateLineCharts() {
+        if (onTimeLineChart == null || lateLineChart == null) return;
         try {
             List<Attendance> userAttendance = attendanceDAO.getAttendanceByUserId(currentUser.getId());
             
@@ -433,6 +471,7 @@ public class AttendanceDashboardController implements Initializable {
 
     // Timer logic
     private void startWorkingHoursTimer() {
+        if (workingTimeLabel == null) return;
         stopWorkingHoursTimer(); // Ensure no multiple timers are running
         workingHoursTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             elapsedSeconds++;
@@ -458,6 +497,7 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     private void updateWorkingTimeLabel() {
+        if (workingTimeLabel == null) return;
         long hours = elapsedSeconds / 3600;
         long minutes = (elapsedSeconds % 3600) / 60;
         long seconds = elapsedSeconds % 60;

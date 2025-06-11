@@ -17,47 +17,7 @@
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 
-<BorderPane prefHeight="800.0" prefWidth="1400.0" styleClass="root-pane" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.controller.AttendanceDashboardController">
-   <top>
-      <HBox alignment="CENTER" styleClass="navbar" BorderPane.alignment="CENTER">
-         <children>
-            <HBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-               <children>
-                  <Label styleClass="logo" text="SH" />
-                  <HBox alignment="CENTER_LEFT" spacing="40.0">
-                     <children>
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Dashboard" />
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Project" />
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Attendance" />
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Schedule" />
-                     </children>
-                     <HBox.margin>
-                        <Insets left="40.0" />
-                     </HBox.margin>
-                  </HBox>
-               </children>
-            </HBox>
-            <Region HBox.hgrow="SOMETIMES" />
-            <HBox alignment="CENTER_RIGHT" spacing="20.0">
-               <children>
-                  <VBox alignment="CENTER_RIGHT">
-                     <children>
-                        <Label fx:id="userNameLabel" styleClass="user-name" text="Reffy Mahardika" />
-                        <Label fx:id="userRoleLabel" styleClass="user-role" text="Staff" />
-                     </children>
-                  </VBox>
-                  <Circle fx:id="profileCircle" radius="25" styleClass="profile-pic" />
-               </children>
-               <HBox.margin>
-                  <Insets right="30.0" />
-               </HBox.margin>
-            </HBox>
-         </children>
-         <padding>
-            <Insets bottom="20.0" left="40.0" right="40.0" top="20.0" />
-         </padding>
-      </HBox>
-   </top>
+<BorderPane prefHeight="800.0" prefWidth="1400.0" styleClass="root-pane" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.AttendanceDashboardController">
    <center>
       <GridPane styleClass="dashboard-grid" BorderPane.alignment="CENTER">
         <columnConstraints>

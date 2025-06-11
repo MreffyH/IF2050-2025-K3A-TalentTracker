@@ -14,6 +14,10 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import javafx.stage.Stage;
 
+import com.talenttracker.dao.UserDAO;
+import com.talenttracker.model.User;
+import java.sql.SQLException;
+
 public class HeaderController {
     @FXML
     private ImageView logoImage;
@@ -31,6 +35,8 @@ public class HeaderController {
     private Label projectLabel;
     @FXML
     private Label attendanceLabel;
+
+    private UserDAO userDAO = new UserDAO();
 
     @FXML
     public void initialize() {
@@ -95,7 +101,36 @@ public class HeaderController {
     
     @FXML
     public void navigateToAttendance() {
-        
+        try {
+            User currentUser = userDAO.getUserById(Main.getLoggedInUserId());
+
+            if (currentUser != null) {
+                String role = currentUser.getRole();
+                String viewPath;
+
+                if ("CEO".equalsIgnoreCase(role)) {
+                    viewPath = "/view/AttendanceDashboardCEO.fxml";
+                } else if ("Staff".equalsIgnoreCase(role)) {
+                    viewPath = "/view/AttendanceDashboardStaff.fxml";
+                } else {
+                    return;
+                }
+
+                BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath));
+                mainContainer.setCenter(loader.load());
+
+                if ("Staff".equalsIgnoreCase(role)) {
+                    AttendanceDashboardController controller = loader.getController();
+                    controller.setUser(currentUser);
+                }
+
+            } else {
+                System.err.println("Could not fetch user data for attendance dashboard.");
+            }
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML

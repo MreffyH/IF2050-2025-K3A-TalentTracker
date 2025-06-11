@@ -5,6 +5,8 @@ import com.talenttracker.util.DatabaseUtil;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO {
 
@@ -97,5 +99,72 @@ public class UserDAO {
             }
         }
         return null;
+    }
+
+    public List<User> getAllStaff() throws SQLException {
+        List<User> staffList = new ArrayList<>();
+        String sql = "SELECT * FROM `user` WHERE role = 'Staff' ORDER BY idUser";
+        try (Connection conn = DatabaseUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("idUser"));
+                user.setFullName(rs.getString("fullName"));
+                user.setEmail(rs.getString("email"));
+                user.setRole(rs.getString("role"));
+                user.setAttendancePercentage(rs.getDouble("attendancePercentage"));
+                user.setSalary(rs.getInt("salary"));
+                staffList.add(user);
+            }
+        }
+        return staffList;
+    }
+
+    public User getUserByEmail(String email) throws SQLException {
+        String sql = "SELECT * FROM `user` WHERE email = ?";
+        User user = null;
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                user = new User();
+                user.setId(rs.getInt("idUser"));
+                user.setFullName(rs.getString("fullName"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(rs.getString("role"));
+                user.setAttendancePercentage(rs.getDouble("attendancePercentage"));
+                user.setSalary(rs.getInt("salary"));
+            }
+        }
+        return user;
+    }
+
+    public User getUserById(int userId) throws SQLException {
+        String sql = "SELECT * FROM `user` WHERE idUser = ?";
+        User user = null;
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                user = new User();
+                user.setId(rs.getInt("idUser"));
+                user.setFullName(rs.getString("fullName"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(rs.getString("role"));
+                user.setAttendancePercentage(rs.getDouble("attendancePercentage"));
+                user.setSalary(rs.getInt("salary"));
+            }
+        }
+        return user;
     }
 } 

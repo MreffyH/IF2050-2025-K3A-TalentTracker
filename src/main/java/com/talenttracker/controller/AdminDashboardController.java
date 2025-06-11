@@ -1,4 +1,4 @@
-package com.example.controller;
+package com.talenttracker.controller;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -9,10 +9,10 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-import com.example.dao.AttendanceDAO;
-import com.example.dao.UserDAO;
-import com.example.model.Attendance;
-import com.example.model.User;
+import com.talenttracker.dao.AttendanceDAO;
+import com.talenttracker.dao.UserDAO;
+import com.talenttracker.model.Attendance;
+import com.talenttracker.model.User;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -39,9 +39,6 @@ public class AdminDashboardController implements Initializable {
     private Pagination tablePagination;
 
     @FXML
-    private Circle profileCircle;
-
-    @FXML
     private GridPane tableHeader;
 
     private UserDAO userDAO = new UserDAO();
@@ -52,9 +49,6 @@ public class AdminDashboardController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Initialize profile circle with CEO initials
-        profileCircle.setFill(Color.WHITE);
-        
         // Load staff data
         loadStaffData();
         

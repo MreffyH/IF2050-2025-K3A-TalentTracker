@@ -1,4 +1,4 @@
-package com.example.model;
+package com.talenttracker.model;
 
 import java.sql.Date;
 import java.sql.Time;

@@ -15,47 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane prefHeight="1080.0" prefWidth="1920.0" styleClass="root-pane" stylesheets="@stylesCEO.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.controller.AdminDashboardController">
-   <top>
-      <HBox alignment="CENTER" styleClass="navbar" BorderPane.alignment="CENTER">
-         <children>
-            <HBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-               <children>
-                  <Label styleClass="logo" text="SH" />
-                  <HBox alignment="CENTER_LEFT" spacing="40.0">
-                     <children>
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Dashboard" />
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Project" />
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Attendance" />
-                        <Button mnemonicParsing="false" styleClass="nav-link" text="Schedule" />
-                     </children>
-                     <HBox.margin>
-                        <Insets left="40.0" />
-                     </HBox.margin>
-                  </HBox>
-               </children>
-            </HBox>
-            <Region HBox.hgrow="SOMETIMES" />
-            <HBox alignment="CENTER_RIGHT" spacing="20.0">
-               <children>
-                  <VBox alignment="CENTER_RIGHT">
-                     <children>
-                        <Label styleClass="user-name" text="Afnan Haykal" />
-                        <Label styleClass="user-role" text="CEO" />
-                     </children>
-                  </VBox>
-                  <Circle fx:id="profileCircle" radius="30" styleClass="profile-pic" />
-               </children>
-               <HBox.margin>
-                  <Insets right="30.0" />
-               </HBox.margin>
-            </HBox>
-         </children>
-         <padding>
-            <Insets bottom="20.0" left="40.0" right="40.0" top="20.0" />
-         </padding>
-      </HBox>
-   </top>
+<BorderPane prefHeight="1080.0" prefWidth="1920.0" styleClass="root-pane" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.AdminDashboardController">
    <center>
       <VBox spacing="30.0" BorderPane.alignment="CENTER">
          <children>

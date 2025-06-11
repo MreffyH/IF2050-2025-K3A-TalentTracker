@@ -1,4 +1,4 @@
-package com.example.dao;
+package com.talenttracker.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,14 +7,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.model.Attendance;
-import com.example.util.DatabaseConnection;
+import com.talenttracker.util.DatabaseUtil;
+import com.talenttracker.model.Attendance;
 
 public class AttendanceDAO {
 
     public void addAttendance(Attendance attendance) throws SQLException {
         String sql = "INSERT INTO attendance (idstaff, `date`, `time`, attendance, working_hours) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, attendance.getIdStaff());
@@ -28,7 +28,7 @@ public class AttendanceDAO {
 
     public void updateWorkingHoursForToday(int attendanceId, int workingSeconds) throws SQLException {
         String sql = "UPDATE attendance SET working_hours = ? WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, workingSeconds);
             pstmt.setInt(2, attendanceId);
@@ -38,7 +38,7 @@ public class AttendanceDAO {
 
     public long getWorkingHoursForToday(int userId) throws SQLException {
         String sql = "SELECT working_hours FROM attendances WHERE id_staff = ? AND attendance_date = CURDATE()";
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             ResultSet rs = statement.executeQuery();
@@ -53,7 +53,7 @@ public class AttendanceDAO {
         List<Attendance> attendanceList = new ArrayList<>();
         String sql = "SELECT * FROM attendance WHERE idstaff = ? ORDER BY `date` DESC, `time` DESC";
         System.out.println("Executing SQL: " + sql); // <-- Add this line
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
@@ -76,7 +76,7 @@ public class AttendanceDAO {
     public int getOnTimeCount(int userId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM attendance WHERE idstaff = ? AND attendance = 1";
         System.out.println("Executing SQL: " + sql); // <-- Add this line
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
@@ -90,7 +90,7 @@ public class AttendanceDAO {
      public boolean hasCheckedInToday(int userId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM attendance WHERE idstaff = ? AND `date` = CURDATE()";
         System.out.println("Executing SQL: " + sql); // <-- Add this line
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
@@ -104,7 +104,7 @@ public class AttendanceDAO {
 
     public Attendance getLatestUnfinishedAttendance(int userId) throws SQLException {
         String sql = "SELECT * FROM attendance WHERE idstaff = ? AND `date` = CURDATE() AND working_hours = 0 ORDER BY `time` DESC LIMIT 1";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
