@@ -32,6 +32,7 @@ import javafx.stage.Stage;
 
 public class AddProjectController {
 
+    @FXML private Label nextIdLabel;
     @FXML private TextField projectIdField;
     @FXML private TextField projectNameField;
     @FXML private TextArea projectDescriptionArea;
@@ -65,6 +66,10 @@ public class AddProjectController {
         
         availableArtists.setAll(userDAO.getUsersByRole("Artist"));
         artistComboBox.setItems(availableArtists);
+
+        int nextId = projectDAO.getNextProjectId();
+        nextIdLabel.setText("Suggested ID: " + nextId);
+        projectIdField.setText(String.valueOf(nextId));
     }
 
     public void setLoggedInCEO(User ceo) {

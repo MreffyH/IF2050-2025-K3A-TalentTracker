@@ -1,8 +1,5 @@
 package com.example.app.dao;
 
-import com.example.app.model.Project;
-import com.example.app.util.Database;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +8,9 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.example.app.model.Project;
+import com.example.app.util.Database;
 
 public class ProjectDAOImpl implements ProjectDAO {
 
@@ -65,5 +65,20 @@ public class ProjectDAOImpl implements ProjectDAO {
             e.printStackTrace();
         }
         return projects;
+    }
+
+    @Override
+    public int getNextProjectId() {
+        String sql = "SELECT MAX(idProject) FROM Project";
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1) + 1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1; // Default to 1 if table is empty or error occurs
     }
 }

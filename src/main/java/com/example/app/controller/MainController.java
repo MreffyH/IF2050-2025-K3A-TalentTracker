@@ -9,6 +9,8 @@ import com.example.app.dao.ProjectArtistDAO;
 import com.example.app.dao.ProjectArtistDAOImpl;
 import com.example.app.dao.ProjectDAO;
 import com.example.app.dao.ProjectDAOImpl;
+import com.example.app.dao.UserDAO;
+import com.example.app.dao.UserDAOImpl;
 import com.example.app.model.Project;
 import com.example.app.model.User;
 
@@ -32,11 +34,13 @@ public class MainController {
 
     private ProjectDAO projectDAO;
     private ProjectArtistDAO projectArtistDAO;
+    private UserDAO userDAO;
     private User loggedInUser;
 
     public MainController() {
         this.projectDAO = new ProjectDAOImpl();
         this.projectArtistDAO = new ProjectArtistDAOImpl();
+        this.userDAO = new UserDAOImpl();
     }
 
     @FXML
@@ -98,8 +102,10 @@ public class MainController {
             Label type = new Label("Type: " + project.getType());
             type.getStyleClass().add("project-status");
             
-            Label staff = new Label("Staff ID: " + project.getIdStaff() + " | CEO ID: " + project.getIdCEO());
-            staff.getStyleClass().add("project-staff");
+            User staffUser = userDAO.getUserById(project.getIdStaff());
+            String staffName = (staffUser != null) ? staffUser.getFullName() : "Unknown";
+            Label staffLabel = new Label("Staff: " + staffName);
+            staffLabel.getStyleClass().add("project-staff");
 
             // Get and display artists
             List<User> artists = projectArtistDAO.getArtistsForProject(project.getIdProject());
@@ -107,7 +113,7 @@ public class MainController {
             Label artistsLabel = new Label("Artists: " + (artistNames.isEmpty() ? "None" : artistNames));
             artistsLabel.getStyleClass().add("project-artists");
 
-            projectCard.getChildren().addAll(title, description, type, staff, artistsLabel);
+            projectCard.getChildren().addAll(title, description, type, staffLabel, artistsLabel);
             
             if (project.getStartDate() != null) {
                 Label date = new Label("Dates: " + project.getStartDate().format(formatter) + " - " + project.getEndDate().format(formatter));

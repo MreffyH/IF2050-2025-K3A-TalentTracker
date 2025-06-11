@@ -17,7 +17,6 @@ public class ProjectArtistDAOImpl implements ProjectArtistDAO {
         String sql = "INSERT INTO ProjectArtist (idProject, idArtist) VALUES (?, ?)";
         try (Connection conn = Database.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             for (Integer artistId : artistIds) {
                 pstmt.setInt(1, projectId);
                 pstmt.setInt(2, artistId);

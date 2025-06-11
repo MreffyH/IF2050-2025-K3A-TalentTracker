@@ -1,7 +1,8 @@
 package com.example.app.dao;
 
-import com.example.app.model.Project;
 import java.util.List;
+
+import com.example.app.model.Project;
 
 public interface ProjectDAO {
     boolean addProject(Project project);
@@ -10,4 +11,5 @@ public interface ProjectDAO {
     // void deleteProject(int projectId);
     Project getProjectById(int projectId);
     List<Project> getAllProjects();
+    int getNextProjectId();
 } 

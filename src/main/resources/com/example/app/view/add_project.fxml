@@ -16,7 +16,7 @@
     <Label text="Add New Project" styleClass="header-title"/>
 
     <VBox styleClass="form-container" spacing="15">
-
+        <Label fx:id="nextIdLabel" style="-fx-font-style: italic; -fx-text-fill: #555;" />
         <Label text="Project ID"/>
         <TextField fx:id="projectIdField" promptText="e.g., 101"/>
 

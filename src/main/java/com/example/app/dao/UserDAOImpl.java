@@ -1,14 +1,14 @@
 package com.example.app.dao;
 
-import com.example.app.model.User;
-import com.example.app.util.Database;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.example.app.model.User;
+import com.example.app.util.Database;
 
 public class UserDAOImpl implements UserDAO {
 
@@ -34,5 +34,28 @@ public class UserDAOImpl implements UserDAO {
             e.printStackTrace();
         }
         return users;
+    }
+
+    @Override
+    public User getUserById(int id) {
+        User user = null;
+        String sql = "SELECT * FROM User WHERE idUser = ?";
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, id);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                user = new User();
+                user.setIdUser(rs.getInt("idUser"));
+                user.setFullName(rs.getString("fullName"));
+                user.setEmail(rs.getString("email"));
+                user.setRole(rs.getString("role"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return user;
     }
 } 
