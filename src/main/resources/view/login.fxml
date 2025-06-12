@@ -22,7 +22,7 @@
          <children>
             <ImageView fitHeight="50.53" fitWidth="81.0" layoutX="56.0" layoutY="56.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="/LogoSN - Black.png" />
+                  <Image url="@/img/LogoSN - Black.png" />
                </image>
             </ImageView>
             <Label layoutX="56.0" layoutY="122.53" style="-fx-font-size: 32; -fx-font-weight: bold;" text="Welcome Back!" textFill="#333333">

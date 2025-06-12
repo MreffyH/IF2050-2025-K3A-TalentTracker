@@ -17,7 +17,6 @@
             <Label fx:id="dashboardLabel" text="Dashboard" style="-fx-font-family: 'Gabarito-Regular'; -fx-text-fill: white; -fx-font-size: 14px;" styleClass="nav-item" onMouseClicked="#navigateToDashboard"/>
             <Label fx:id="projectLabel" text="Project" style="-fx-font-family: 'Gabarito-Regular'; -fx-text-fill: white; -fx-font-size: 14px;" styleClass="nav-item" onMouseClicked="#navigateToProject"/>
             <Label fx:id="attendanceLabel" text="Attendance" style="-fx-font-family: 'Gabarito-Regular'; -fx-text-fill: white; -fx-font-size: 14px;" styleClass="nav-item" onMouseClicked="#navigateToAttendance"/>
-            <Label fx:id="scheduleLabel" text="Schedule" style="-fx-font-family: 'Gabarito-Regular'; -fx-text-fill: white; -fx-font-size: 14px;" styleClass="nav-item" onMouseClicked="#navigateToSchedule"/>
          </HBox>
          
          <!-- Right side: Profile -->

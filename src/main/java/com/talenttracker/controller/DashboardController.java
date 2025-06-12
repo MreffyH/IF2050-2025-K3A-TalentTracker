@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
@@ -62,6 +63,8 @@ public class DashboardController {
             "#FEB95A", "#E89B2F", "#223055", "#FFB7CA", "#28AEF3",
             "#D7598B", "#A9DFD8", "#538EA5"
     );
+
+    private HeaderController headerController;
 
     @FXML
     public void initialize() {
@@ -206,23 +209,26 @@ public class DashboardController {
         }
     }
 
+    public void setHeaderController(HeaderController headerController) {
+        this.headerController = headerController;
+    }
+
     private void handleSearch() {
         String searchTerm = searchTextField.getText().trim();
-        if (searchTerm.isEmpty()) return;
+        if (searchTerm.isEmpty()) {
+            return;
+        }
 
         try {
             int artistId = userDAO.getArtistIdByName(searchTerm);
             if (artistId != -1) {
-                BorderPane mainContainer = (BorderPane) searchTextField.getScene().getRoot();
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LaporanKinerjaView.fxml"));
-                mainContainer.setCenter(loader.load());
-
-                LaporanKinerjaController controller = loader.getController();
-                controller.setArtist(artistId, searchTerm);
+                if (headerController != null) {
+                    headerController.navigateToLaporanKinerja(artistId, searchTerm);
+                }
             } else {
                 System.out.println("Artist not found: " + searchTerm);
             }
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

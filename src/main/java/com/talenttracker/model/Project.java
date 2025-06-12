@@ -1,6 +1,7 @@
 package com.talenttracker.model;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class Project {
     private int idProject;
@@ -11,6 +12,7 @@ public class Project {
     private int idStaff;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private String status;
 
     // Constructors
     public Project() {
@@ -28,6 +30,10 @@ public class Project {
     }
 
     // Getters and Setters
+    public int getId() {
+        return idProject;
+    }
+
     public int getIdProject() {
         return idProject;
     }
@@ -44,14 +50,6 @@ public class Project {
         this.projectName = projectName;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -60,20 +58,12 @@ public class Project {
         this.description = description;
     }
 
-    public int getIdCEO() {
-        return idCEO;
+    public String getType() {
+        return type;
     }
 
-    public void setIdCEO(int idCEO) {
-        this.idCEO = idCEO;
-    }
-
-    public int getIdStaff() {
-        return idStaff;
-    }
-
-    public void setIdStaff(int idStaff) {
-        this.idStaff = idStaff;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public LocalDateTime getStartDate() {
@@ -90,5 +80,29 @@ public class Project {
 
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getIdCEO() {
+        return idCEO;
+    }
+
+    public void setIdCEO(int idCEO) {
+        this.idCEO = idCEO;
+    }
+
+    public int getIdStaff() {
+        return idStaff;
+    }
+
+    public void setIdStaff(int idStaff) {
+        this.idStaff = idStaff;
     }
 } 

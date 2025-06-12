@@ -10,6 +10,9 @@ import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
@@ -94,16 +97,16 @@ public class LaporanKinerjaController {
         this.artistNameLabel.setText(artistName);
         
         try {
-            String profileImageName = artistName.replaceAll("\\s+", "") + "Profile.png";
-            Image profileImage = new Image("file:img/" + profileImageName);
-                artistAvatarView.setImage(profileImage);
+            String profileImageName = "/" + artistName.replaceAll("\\s+", "") + "Profile.png";
+            Image profileImage = new Image(Main.class.getResourceAsStream("/img" + profileImageName));
+            artistAvatarView.setImage(profileImage);
             if (profileImage.isError()) {
-                artistAvatarView.setImage(new Image("file:img/DefaultArtist.png"));
+                artistAvatarView.setImage(new Image(Main.class.getResourceAsStream("/img/DefaultArtist.png")));
             }
-            downloadIcon.setImage(new Image("file:img/DownloadIcon.png"));
+            downloadIcon.setImage(new Image(Main.class.getResourceAsStream("/img/DownloadIcon.png")));
         } catch (Exception e) {
             System.err.println("Error loading image for " + artistName + ", using default.");
-            artistAvatarView.setImage(new Image("file:img/DefaultArtist.png"));
+            artistAvatarView.setImage(new Image(Main.class.getResourceAsStream("/img/DefaultArtist.png")));
         }
 
         loadAllDataFromDatabase();
@@ -129,9 +132,9 @@ public class LaporanKinerjaController {
 
     private void initializeImageViews() {
         try {
-            visitorsIconView.setImage(new Image("file:img/VisitorIcon.png"));
-            salesIconView.setImage(new Image("file:img/MoneyIcon.png"));
-            albumsSoldIconView.setImage(new Image("file:img/BagIcon.png"));
+            visitorsIconView.setImage(new Image(Main.class.getResourceAsStream("/img/VisitorIcon.png")));
+            salesIconView.setImage(new Image(Main.class.getResourceAsStream("/img/MoneyIcon.png")));
+            albumsSoldIconView.setImage(new Image(Main.class.getResourceAsStream("/img/BagIcon.png")));
         } catch (Exception e) {
             System.err.println("Error loading icon images: " + e.getMessage());
         }

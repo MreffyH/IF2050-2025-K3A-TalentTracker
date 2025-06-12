@@ -1,19 +1,38 @@
 package com.talenttracker;
 
+import java.io.IOException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.scene.text.Font;
-import java.io.IOException;
 
 public class Main extends Application {
-
     private static String loggedInUserRole;
     private static String loggedInUserFullName;
     private static int loggedInUserId;
+
+    public static String getLoggedInUserFullName() {
+        return loggedInUserFullName;
+    }
+
+    public static int getLoggedInUserId() {
+        return loggedInUserId;
+    }
+
+    public static String getLoggedInUserRole() {
+        return loggedInUserRole;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    public static void setLoggedInUser(int id, String fullName, String role) {
+        loggedInUserId = id;
+        loggedInUserFullName = fullName;
+        loggedInUserRole = role;
+    }
 
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -24,26 +43,4 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
-    public static void setLoggedInUser(int id, String fullName, String role) {
-        loggedInUserId = id;
-        loggedInUserRole = role;
-        loggedInUserFullName = fullName;
-    }
-
-    public static String getLoggedInUserRole() {
-        return loggedInUserRole;
-    }
-
-    public static String getLoggedInUserFullName() {
-        return loggedInUserFullName;
-    }
-
-    public static int getLoggedInUserId() {
-        return loggedInUserId;
-    }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
-}
+} 

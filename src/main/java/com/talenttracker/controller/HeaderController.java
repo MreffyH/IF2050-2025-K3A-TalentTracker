@@ -91,9 +91,10 @@ public class HeaderController {
             mainPane.setCenter(loader.load());
             currentContentController = loader.getController();
 
-            if ("Artist".equalsIgnoreCase(Main.getLoggedInUserRole())) {
-                DashboardArtistController controller = (DashboardArtistController) currentContentController;
-                controller.setArtistId(Main.getLoggedInUserId());
+            if (currentContentController instanceof DashboardController) {
+                ((DashboardController) currentContentController).setHeaderController(this);
+            } else if (currentContentController instanceof DashboardArtistController) {
+                 ((DashboardArtistController) currentContentController).setArtistId(Main.getLoggedInUserId());
             }
 
         } catch (IOException e) {
@@ -151,10 +152,23 @@ public class HeaderController {
     
     @FXML
     public void navigateToSchedule() {
+        // try {
+        //     FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/CalendarView.fxml"));
+        //     mainPane.setCenter(loader.load());
+        //     currentContentController = loader.getController();
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
+    }
+
+    public void navigateToLaporanKinerja(int artistId, String artistName) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/CalendarView.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LaporanKinerjaView.fxml"));
             mainPane.setCenter(loader.load());
             currentContentController = loader.getController();
+            if (currentContentController instanceof LaporanKinerjaController) {
+                ((LaporanKinerjaController) currentContentController).setArtist(artistId, artistName);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
