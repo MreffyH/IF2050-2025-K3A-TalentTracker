@@ -11,10 +11,9 @@ public class DatabaseUtil {
     private static final Properties properties = new Properties();
 
     static {
-        try (InputStream input = DatabaseUtil.class.getClassLoader().getResourceAsStream("config.properties")) {
+        try (InputStream input = DatabaseUtil.class.getClassLoader().getResourceAsStream(".env")) {
             if (input == null) {
-                System.out.println("Sorry, unable to find config.properties");
-                throw new RuntimeException("config.properties not found");
+                System.out.println("Sorry, unable to find .env");
             }
             properties.load(input);
         } catch (Exception ex) {
