@@ -71,6 +71,10 @@ public class DashboardController {
         initializeStatIcons();
     }
 
+    public void refreshAllData() {
+        loadDashboardData();
+    }
+
     private void loadDashboardData() {
         loadTodayStats();
         loadMonthlyTotal();

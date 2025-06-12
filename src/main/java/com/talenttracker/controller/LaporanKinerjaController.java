@@ -92,11 +92,11 @@ public class LaporanKinerjaController {
         this.artistId = artistId;
         this.artistFullName = artistName;
         this.artistNameLabel.setText(artistName);
-
+        
         try {
             String profileImageName = artistName.replaceAll("\\s+", "") + "Profile.png";
             Image profileImage = new Image("file:img/" + profileImageName);
-            artistAvatarView.setImage(profileImage);
+                artistAvatarView.setImage(profileImage);
             if (profileImage.isError()) {
                 artistAvatarView.setImage(new Image("file:img/DefaultArtist.png"));
             }
@@ -108,7 +108,7 @@ public class LaporanKinerjaController {
 
         loadAllDataFromDatabase();
     }
-
+    
     @FXML
     public void initialize() {
         socialMediaChart.setAnimated(true);
@@ -118,7 +118,7 @@ public class LaporanKinerjaController {
         addSocialButton.setOnAction(e -> handleAddSocial());
         addVisitorsButton.setOnAction(e -> handleAddVisitors());
         addSalesButton.setOnAction(e -> handleAddSales());
-
+        
         setupComboBox();
         initializeImageViews();
 
@@ -155,24 +155,24 @@ public class LaporanKinerjaController {
 
         try {
             double todayVisitors = statsDAO.getVisitorsForDate(today, this.artistId);
-            visitorsCountLabel.setText(String.format("%,.0f", todayVisitors));
+        visitorsCountLabel.setText(String.format("%,.0f", todayVisitors));
             double todaySales = statsDAO.getSalesForDate(today, this.artistId);
-            salesAmountLabel.setText(currencyFormat.format(todaySales));
+        salesAmountLabel.setText(currencyFormat.format(todaySales));
             double todayAlbums = statsDAO.getAlbumsSoldForDate(today, this.artistId);
-            albumsSoldCountLabel.setText(String.format("%,.0f", todayAlbums));
+        albumsSoldCountLabel.setText(String.format("%,.0f", todayAlbums));
 
             double yesterdayVisitors = statsDAO.getVisitorsForDate(yesterday, this.artistId);
-            updateChangeLabel(visitorsChangeLabel, todayVisitors, yesterdayVisitors, false);
+        updateChangeLabel(visitorsChangeLabel, todayVisitors, yesterdayVisitors, false);
             double yesterdaySales = statsDAO.getSalesForDate(yesterday, this.artistId);
-            updateChangeLabel(salesChangeLabel, todaySales, yesterdaySales, true);
+        updateChangeLabel(salesChangeLabel, todaySales, yesterdaySales, true);
             double yesterdayAlbums = statsDAO.getAlbumsSoldForDate(yesterday, this.artistId);
-            updateChangeLabel(albumsSoldChangeLabel, todayAlbums, yesterdayAlbums, false);
+        updateChangeLabel(albumsSoldChangeLabel, todayAlbums, yesterdayAlbums, false);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void loadTopAlbumChart() {
+    public void loadTopAlbumChart() {
         topAlbumChart.getData().clear();
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         try {
@@ -230,7 +230,7 @@ public class LaporanKinerjaController {
             e.printStackTrace();
         }
     }
-
+    
     private void updateChangeLabel(Label label, double current, double previous, boolean isCurrency) {
         if (previous == 0) {
             label.setText(current > 0 ? "+100%" : "N/A");
@@ -247,13 +247,17 @@ public class LaporanKinerjaController {
             showAlert("Error", "Album name and initial sold count cannot be empty.");
             return;
         }
+
         try {
             int sold = Integer.parseInt(soldText);
             albumDAO.addAlbum(albumName, sold, artistId);
-            showSuccessMessage();
-            loadTopAlbumChart();
+            statsDAO.addAlbumsSold(sold, artistId);
+            
+            loadAllDataFromDatabase();
+
             albumNameField.clear();
             albumSoldField.clear();
+
         } catch (NumberFormatException e) {
             showAlert("Error", "Initial sold must be a number.");
         } catch (SQLException e) {
@@ -286,7 +290,7 @@ public class LaporanKinerjaController {
                     int amount = Integer.parseInt(amountText);
                     albumDAO.addAlbumSold(selectedAlbum, amount, artistId);
                     statsDAO.addAlbumsSold(amount, artistId);
-                    showSuccessMessage();
+            showSuccessMessage();
                     loadAllDataFromDatabase();
                     addAlbumSoldAmountField.clear();
                 } catch (NumberFormatException e) {
@@ -359,7 +363,7 @@ public class LaporanKinerjaController {
         }
     }
 
-    private void showSuccessMessage() {
+    public void showSuccessMessage() {
         successMessageLabel.setText("Data added successfully!");
         successMessageLabel.setVisible(true);
         FadeTransition ft = new FadeTransition(Duration.millis(200), successMessageLabel);
@@ -467,7 +471,7 @@ public class LaporanKinerjaController {
                 List<Album> albums = albumDAO.getArtistAlbums(artistId, false);
                 for (Album album : albums) {
                     writer.append(album.getName()).append(",").append(String.valueOf(album.getSales())).append("\n");
-                }
+                    }
                 writer.append("\n");
 
                 writer.append("Platform,Date,Followers\n");

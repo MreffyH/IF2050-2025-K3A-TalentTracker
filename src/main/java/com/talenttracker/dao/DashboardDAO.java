@@ -85,4 +85,39 @@ public class DashboardDAO {
         }
         return popularities;
     }
+
+    // Methods for testing purposes
+    public void addTestDataForDate(LocalDate date, double sales, double albumsSold, double visitors) throws SQLException {
+        // Using a dummy artist ID for test data
+        int testArtistId = 997;
+        addRecord("Sales", "salesToday", date, sales, testArtistId);
+        addRecord("AlbumSold", "albumSoldToday", date, albumsSold, testArtistId);
+        addRecord("Visitors", "visitorsToday", date, visitors, testArtistId);
+    }
+
+    public void removeTestDataForDate(LocalDate date) throws SQLException {
+        removeRecord("Sales", date);
+        removeRecord("AlbumSold", date);
+        removeRecord("Visitors", date);
+    }
+
+    private void addRecord(String tableName, String columnName, LocalDate date, double value, int artistId) throws SQLException {
+        String sql = String.format("INSERT INTO %s (date, %s, idArtis) VALUES (?, ?, ?)", tableName, columnName);
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setDate(1, java.sql.Date.valueOf(date));
+            pstmt.setDouble(2, value);
+            pstmt.setInt(3, artistId);
+            pstmt.executeUpdate();
+        }
+    }
+
+    private void removeRecord(String tableName, LocalDate date) throws SQLException {
+        String sql = String.format("DELETE FROM %s WHERE date = ?", tableName);
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setDate(1, java.sql.Date.valueOf(date));
+            pstmt.executeUpdate();
+        }
+    }
 } 

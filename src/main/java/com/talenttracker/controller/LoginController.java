@@ -79,7 +79,7 @@ public class LoginController {
             User user = userDAO.verifyUser(email, password);
 
             if (user != null) {
-                Main.setLoggedInUser(user.getId(), user.getRole(), user.getFullName());
+                Main.setLoggedInUser(user.getId(), user.getFullName(), user.getRole());
 
                 showAlert(Alert.AlertType.INFORMATION, "Login Successful", "Welcome, " + user.getFullName() + "!");
 
@@ -104,7 +104,7 @@ public class LoginController {
 
                 } catch (IOException e) {
                     e.printStackTrace();
-                    showAlert(Alert.AlertType.ERROR, "Navigation Error", "Could not load the dashboard.");
+                    showAlert(Alert.AlertType.ERROR, "Navigation Error", "Could not load the main application layout.");
                 }
             } else {
                 showAlert(Alert.AlertType.ERROR, "Login Failed", "Invalid email or password.");

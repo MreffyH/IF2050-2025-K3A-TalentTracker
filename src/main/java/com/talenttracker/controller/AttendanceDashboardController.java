@@ -321,7 +321,8 @@ public class AttendanceDashboardController implements Initializable {
                 currentUser = userDAO.getUserById(currentUser.getId());
 
                 currentAttendanceRecord = null;
-                checkButton.setText("Check In");
+                checkButton.setText("Checked In Today");
+                checkButton.setDisable(true);
                 checkButton.getStyleClass().setAll("check-button-in");
                 refreshDashboard();
             } catch (SQLException e) {
@@ -401,7 +402,7 @@ public class AttendanceDashboardController implements Initializable {
     }
 
     @FXML
-    private void handleViewSalary() {
+    public void handleViewSalary() {
         isSalaryVisible = !isSalaryVisible;
         updateSalaryDisplay();
     }

@@ -123,4 +123,13 @@ public class AttendanceDAO {
         }
         return null;
     }
+
+    public void removeAttendanceByUser(int userId) throws SQLException {
+        String sql = "DELETE FROM attendance WHERE idstaff = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.executeUpdate();
+        }
+    }
 } 

@@ -56,7 +56,7 @@ public class UserDAO {
     }
 
     public int getArtistIdByName(String artistName) throws SQLException {
-        String sql = "SELECT idUser FROM User WHERE fullName = ? AND role = 'Artist'";
+        String sql = "SELECT idUser FROM `user` WHERE fullName = ? AND role = 'Artist'";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, artistName);
@@ -70,7 +70,7 @@ public class UserDAO {
     }
 
     public String getArtistNameById(int artistId) throws SQLException {
-        String sql = "SELECT fullName FROM User WHERE idUser = ?";
+        String sql = "SELECT fullName FROM `user` WHERE idUser = ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, artistId);
@@ -170,7 +170,7 @@ public class UserDAO {
 
     public List<User> getUsersByRole(String role) throws SQLException {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM User WHERE role = ?";
+        String sql = "SELECT * FROM `user` WHERE role = ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -187,5 +187,29 @@ public class UserDAO {
             }
         }
         return users;
+    }
+
+    public void removeUser(int userId) throws SQLException {
+        String sql = "DELETE FROM `user` WHERE idUser = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.executeUpdate();
+        }
+    }
+
+    public boolean addUser(int id, String fullName, String email, String password, String role) throws SQLException {
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        String query = "INSERT INTO `user` (idUser, fullName, email, password, role) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, id);
+            pstmt.setString(2, fullName);
+            pstmt.setString(3, email);
+            pstmt.setString(4, hashedPassword);
+            pstmt.setString(5, role);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        }
     }
 } 

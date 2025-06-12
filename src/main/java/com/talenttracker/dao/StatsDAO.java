@@ -11,29 +11,43 @@ import java.time.LocalDate;
 public class StatsDAO {
 
     public void addVisitors(int count, int artistId) throws SQLException {
+        addVisitors(count, artistId, LocalDate.now());
+    }
+
+    public void addVisitors(int count, int artistId, LocalDate date) throws SQLException {
         String sql = "INSERT INTO Visitors (visitorsToday, idArtis, date) VALUES (?, ?, ?) " +
-                     "ON DUPLICATE KEY UPDATE visitorsToday = visitorsToday + VALUES(visitorsToday)";
+                     "ON DUPLICATE KEY UPDATE visitorsToday = visitorsToday + ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, count);
             pstmt.setInt(2, artistId);
-            pstmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
+            pstmt.setDate(3, java.sql.Date.valueOf(date));
+            pstmt.setInt(4, count);
             pstmt.executeUpdate();
         }
     }
 
     public void addSales(int amount, int artistId) throws SQLException {
-        addDailyStat("Sales", "salesToday", amount, artistId);
+        addSales(amount, artistId, LocalDate.now());
+    }
+
+    public void addSales(int amount, int artistId, LocalDate date) throws SQLException {
+        addDailyStat("Sales", "salesToday", amount, artistId, date);
     }
     
     public void addAlbumsSold(int amount, int artistId) throws SQLException {
+        addAlbumsSold(amount, artistId, LocalDate.now());
+    }
+
+    public void addAlbumsSold(int amount, int artistId, LocalDate date) throws SQLException {
         String sql = "INSERT INTO AlbumSold (albumSoldToday, idArtis, date) VALUES (?, ?, ?) " +
-                     "ON DUPLICATE KEY UPDATE albumSoldToday = albumSoldToday + VALUES(albumSoldToday)";
+                     "ON DUPLICATE KEY UPDATE albumSoldToday = albumSoldToday + ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, amount);
             pstmt.setInt(2, artistId);
-            pstmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
+            pstmt.setDate(3, java.sql.Date.valueOf(date));
+            pstmt.setInt(4, amount);
             pstmt.executeUpdate();
         }
     }
@@ -62,15 +76,22 @@ public class StatsDAO {
         return getTotalForArtist("AlbumSold", "albumSoldToday", artistId);
     }
 
-    private void addDailyStat(String tableName, String valueColumnName, int value, int artistId) throws SQLException {
-        String sql = String.format("INSERT INTO %s (%s, idArtis, date) VALUES (?, ?, ?)", tableName, valueColumnName);
+    private void addDailyStat(String tableName, String valueColumnName, int value, int artistId, LocalDate date) throws SQLException {
+        String sql = String.format("INSERT INTO %s (%s, idArtis, date) VALUES (?, ?, ?) " +
+                                   "ON DUPLICATE KEY UPDATE %s = %s + ?",
+                                   tableName, valueColumnName, valueColumnName, valueColumnName);
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, value);
             pstmt.setInt(2, artistId);
-            pstmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
+            pstmt.setDate(3, java.sql.Date.valueOf(date));
+            pstmt.setInt(4, value);
             pstmt.executeUpdate();
         }
+    }
+
+    private void addDailyStat(String tableName, String valueColumnName, int value, int artistId) throws SQLException {
+        addDailyStat(tableName, valueColumnName, value, artistId, LocalDate.now());
     }
 
     private double getTotalForDate(String tableName, String valueColumnName, LocalDate date, int artistId) throws SQLException {
@@ -117,5 +138,20 @@ public class StatsDAO {
             }
         }
         return total;
+    }
+
+    public void removeStatsForArtist(int artistId) throws SQLException {
+        removeRecord("Visitors", artistId);
+        removeRecord("Sales", artistId);
+        removeRecord("AlbumSold", artistId);
+    }
+
+    private void removeRecord(String tableName, int artistId) throws SQLException {
+        String sql = String.format("DELETE FROM %s WHERE idArtis = ?", tableName);
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            pstmt.executeUpdate();
+        }
     }
 }

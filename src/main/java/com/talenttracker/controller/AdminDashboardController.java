@@ -62,6 +62,12 @@ public class AdminDashboardController implements Initializable {
         displayStaffPage(0);
     }
 
+    public void refreshStaffList() {
+        loadStaffData();
+        setupPagination();
+        displayStaffPage(0);
+    }
+
     private void loadStaffData() {
         try {
             allStaffMembers = userDAO.getAllStaff();

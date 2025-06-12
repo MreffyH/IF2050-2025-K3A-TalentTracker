@@ -35,11 +35,16 @@ public class SocialMediaDAO {
         return socialMediaData;
     }
 
-    public void addSocialMediaData(String platform, int followers, int artistId) throws SQLException {
-        addSocialMedia(platform, followers, artistId);
+
+    public void addSocialMediaData(String platform, int followers, int artistId, LocalDate date) throws SQLException {
+        addSocialMedia(platform, followers, artistId, date);
     }
 
-    public void addSocialMedia(String platform, int followers, int artistId) throws SQLException {
+    public void addSocialMediaData(String platform, int followers, int artistId) throws SQLException {
+        addSocialMedia(platform, followers, artistId, LocalDate.now());
+    }
+
+    public void addSocialMedia(String platform, int followers, int artistId, LocalDate date) throws SQLException {
         String sql = "INSERT INTO Popularity (socialMedia, todayFollowers, idArtis, date) VALUES (?, ?, ?, ?) " +
                      "ON DUPLICATE KEY UPDATE todayFollowers = todayFollowers + VALUES(todayFollowers)";
         try (Connection conn = DatabaseUtil.getConnection();
@@ -47,7 +52,7 @@ public class SocialMediaDAO {
             pstmt.setString(1, platform);
             pstmt.setInt(2, followers);
             pstmt.setInt(3, artistId);
-            pstmt.setDate(4, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            pstmt.setDate(4, java.sql.Date.valueOf(date));
             pstmt.executeUpdate();
         }
     }
@@ -93,5 +98,14 @@ public class SocialMediaDAO {
             }
         }
         return stats;
+    }
+
+    public void removeSocialMediaDataByArtist(int artistId) throws SQLException {
+        String sql = "DELETE FROM Popularity WHERE idArtis = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            pstmt.executeUpdate();
+        }
     }
 } 

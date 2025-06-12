@@ -42,4 +42,28 @@ public class FansDAO {
         }
         return responses;
     }
+
+    // Methods for testing purposes
+    public void addFanResponse(int idResponse, int artistId, String source, String comment, String category, java.sql.Timestamp timestamp) throws SQLException {
+        String sql = "INSERT INTO FansResponse (idResponse, idArtis, source, comment, category, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idResponse);
+            pstmt.setInt(2, artistId);
+            pstmt.setString(3, source);
+            pstmt.setString(4, comment);
+            pstmt.setString(5, category);
+            pstmt.setTimestamp(6, timestamp);
+            pstmt.executeUpdate();
+        }
+    }
+
+    public void removeFanResponsesByArtist(int artistId) throws SQLException {
+        String sql = "DELETE FROM FansResponse WHERE idArtis = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, artistId);
+            pstmt.executeUpdate();
+        }
+    }
 } 

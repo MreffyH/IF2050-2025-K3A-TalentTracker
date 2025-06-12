@@ -22,7 +22,7 @@
 
 <!-- Main layout for Laporan Kinerja (Performance Report) -->
 
-<BorderPane prefHeight="800.0" prefWidth="1400.0" style="-fx-background-color: #ffc0cb;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.LaporanKinerjaController">
+<BorderPane fx:id="laporanKinerjaPane" prefHeight="800.0" prefWidth="1400.0" style="-fx-background-color: #ffc0cb;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.talenttracker.controller.LaporanKinerjaController">
    <center>
       <!-- Use a StackPane to allow the success message to overlay the content -->
       <StackPane>

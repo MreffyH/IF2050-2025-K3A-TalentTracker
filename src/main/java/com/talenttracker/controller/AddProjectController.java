@@ -96,7 +96,7 @@ public class AddProjectController {
     }
 
     @FXML
-    private void handleAddArtistAction() {
+    public void handleAddArtistAction() {
         User selectedArtist = artistComboBox.getValue();
         if (selectedArtist != null) {
             assignedArtists.add(selectedArtist);
@@ -124,7 +124,7 @@ public class AddProjectController {
     }
 
     @FXML
-    private void handleSubmitButtonAction() {
+    public void handleSubmitButtonAction() {
         try {
             User selectedStaff = staffComboBox.getValue();
 

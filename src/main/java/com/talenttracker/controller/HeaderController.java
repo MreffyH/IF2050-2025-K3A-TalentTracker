@@ -20,6 +20,8 @@ import java.sql.SQLException;
 
 public class HeaderController {
     @FXML
+    private BorderPane mainPane;
+    @FXML
     private ImageView logoImage;
     
     @FXML
@@ -37,6 +39,7 @@ public class HeaderController {
     private Label attendanceLabel;
 
     private UserDAO userDAO = new UserDAO();
+    private Object currentContentController;
 
     @FXML
     public void initialize() {
@@ -57,7 +60,9 @@ public class HeaderController {
             }
             
             String userRole = Main.getLoggedInUserRole();
-            nameLabel.setText(Main.getLoggedInUserFullName());
+            String userFullName = Main.getLoggedInUserFullName();
+
+            nameLabel.setText(userFullName);
             roleLabel.setText(userRole);
 
             if ("Artist".equalsIgnoreCase(userRole)) {
@@ -71,6 +76,8 @@ public class HeaderController {
                 }
             }
             
+            navigateToDashboard();
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -79,13 +86,13 @@ public class HeaderController {
     @FXML
     public void navigateToDashboard() {
         try {
-            BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
             String viewPath = "Artist".equalsIgnoreCase(Main.getLoggedInUserRole()) ? "/view/DashboardViewArtist.fxml" : "/view/DashboardView.fxml";
             FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath));
-            mainContainer.setCenter(loader.load());
+            mainPane.setCenter(loader.load());
+            currentContentController = loader.getController();
 
             if ("Artist".equalsIgnoreCase(Main.getLoggedInUserRole())) {
-                DashboardArtistController controller = loader.getController();
+                DashboardArtistController controller = (DashboardArtistController) currentContentController;
                 controller.setArtistId(Main.getLoggedInUserId());
             }
 
@@ -98,10 +105,10 @@ public class HeaderController {
     public void navigateToProject() {
         try {
             User currentUser = userDAO.getUserById(Main.getLoggedInUserId());
-            BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/projek.fxml"));
-            mainContainer.setCenter(loader.load());
-            ProjectController controller = loader.getController();
+            mainPane.setCenter(loader.load());
+            currentContentController = loader.getController();
+            ProjectController controller = (ProjectController) currentContentController;
             controller.initializeWithUser(currentUser);
         } catch (IOException | SQLException e) {
             e.printStackTrace();
@@ -125,12 +132,12 @@ public class HeaderController {
                     return;
                 }
 
-                BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath));
-                mainContainer.setCenter(loader.load());
+                mainPane.setCenter(loader.load());
+                currentContentController = loader.getController();
 
                 if ("Staff".equalsIgnoreCase(role)) {
-                    AttendanceDashboardController controller = loader.getController();
+                    AttendanceDashboardController controller = (AttendanceDashboardController) currentContentController;
                     controller.setUser(currentUser);
                 }
 
@@ -145,11 +152,15 @@ public class HeaderController {
     @FXML
     public void navigateToSchedule() {
         try {
-            BorderPane mainContainer = (BorderPane) logoImage.getScene().getRoot();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/CalendarView.fxml"));
-            mainContainer.setCenter(loader.load());
+            mainPane.setCenter(loader.load());
+            currentContentController = loader.getController();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Object getCurrentContentController() {
+        return currentContentController;
     }
 } 

@@ -43,4 +43,13 @@ public class ProjectArtistDAO {
         }
         return artists;
     }
+
+    public void removeArtistsFromProject(int projectId) throws SQLException {
+        String sql = "DELETE FROM ProjectArtist WHERE idProject = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, projectId);
+            pstmt.executeUpdate();
+        }
+    }
 } 

@@ -25,7 +25,7 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    public static void setLoggedInUser(int id, String role, String fullName) {
+    public static void setLoggedInUser(int id, String fullName, String role) {
         loggedInUserId = id;
         loggedInUserRole = role;
         loggedInUserFullName = fullName;

@@ -73,4 +73,14 @@ public class AlbumDAO {
             pstmt.executeUpdate();
         }
     }
+
+    public void removeAlbum(String albumName, int artistId) throws SQLException {
+        String sql = "DELETE FROM TopAlbum WHERE albumName = ? AND idArtis = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, albumName);
+            pstmt.setInt(2, artistId);
+            pstmt.executeUpdate();
+        }
+    }
 } 

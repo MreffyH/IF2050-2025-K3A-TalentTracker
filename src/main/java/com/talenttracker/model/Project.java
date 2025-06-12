@@ -16,6 +16,17 @@ public class Project {
     public Project() {
     }
 
+    public Project(int idProject, String projectName, String type, LocalDateTime startDate, LocalDateTime endDate, String description, int idCEO, int idStaff) {
+        this.idProject = idProject;
+        this.projectName = projectName;
+        this.type = type;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.description = description;
+        this.idCEO = idCEO;
+        this.idStaff = idStaff;
+    }
+
     // Getters and Setters
     public int getIdProject() {
         return idProject;
