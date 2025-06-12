@@ -90,4 +90,4 @@ nb-configuration.xml
 *.log
 
 # Local configuration files
-config.properties
+.env
